@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gluon v2 Desktop</title>
+  <!-- Upewnij się, że ścieżka do zrefaktoryzowanego CSS jest poprawna -->
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="80s-theme.css" />
+  <link rel="stylesheet" href="features/workflows/workflow.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header neumorphic-inset">
+      <div class="connection-status neumorphic-raised-sm" id="connection-status">
+        <span class="indicator disconnected"></span>
+      </div>
+      <div class="logo">
+        <a href="https://ai-gluon.com" target="_blank" rel="noopener noreferrer" class="logo-link">
+          <img src="assets/icons/icon_256.png" alt="Gluon Logo" class="logo-img-default" />
+          <img src="assets/gluon_text.png" alt="Gluon v2 Settings" class="logo-text-img-default" />
+          <!-- 80s Theme Elements -->
+          <div class="gluon-logo-wrapper-80s">
+            <div class="gluon-logo-masked"></div>
+          </div>
+          <div class="gluon-name-masked"></div>
+        </a>
+      </div>
+
+      <div class="header-actions">
+        <a href="https://youtu.be/BIv02ULkLwo" target="_blank" rel="noopener noreferrer" class="header-action-btn neumorphic-raised-sm interactive-lift" title="Watch Tutorial">
+            <img src="assets/youtube.png" alt="YouTube">
+            <span>Tutorial</span>
+        </a>
+        <a href="https://discord.gg/2wqpwpCq" target="_blank" rel="noopener noreferrer" class="header-action-btn neumorphic-raised-sm interactive-lift" title="Join Support Server">
+            <img src="assets/Discord-Symbol-Blurple.png" alt="Discord">
+            <span>Support</span>
+        </a>
+        <a href="https://chromewebstore.google.com/detail/gluon-v2/bemgjodblbmplpnndbfgcohalpjdkoih" target="_blank" rel="noopener noreferrer" class="header-action-btn neumorphic-raised-sm interactive-lift" title="Get the Extension">
+            <img src="assets/chrome-web.png" alt="Chrome Web Store">
+            <span>Extension</span>
+        </a>
+        <a href="https://github.com/Mati46p/Gluon-v2-release" target="_blank" rel="noopener noreferrer" class="header-action-btn neumorphic-raised-sm interactive-lift" title="Visit on GitHub">
+            <img src="assets/GitHub-Mark.png" alt="GitHub">
+            <span>GitHub</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs neumorphic-inset">
+      <button class="tab-link active" data-tab="projects">Projects</button>
+      <button class="tab-link" data-tab="environments">Environments</button>
+      <button class="tab-link" data-tab="backups">Backups</button>
+      <button class="tab-link" data-tab="auditor">Auditor</button>
+      <button class="tab-link" data-tab="workflows">Workflows</button>
+      <button class="tab-link" data-tab="ai-chat">💬 AI Chat</button>
+      <button class="tab-link" data-tab="google-drive">Google Drive</button>
+      <button class="tab-link" data-tab="updates">License & Updates</button>
+      <!-- <button class="tab-link" data-tab="style">Style</button> -->
+    </nav>
+
+    <!-- Projects Tab Content -->
+    <main id="projects" class="tab-content active">
+      <div class="card neumorphic-raised">
+        <div class="card-header">
+          <h2 class="text-gradient">Project Folders</h2>
+          <div class="actions">
+            <button id="add-project-btn" class="btn neumorphic-raised interactive-lift">Add Project</button>
+            <button id="remove-project-btn" class="btn btn-danger neumorphic-raised interactive-lift" disabled>Remove Selected</button>
+          </div>
+        </div>
+        <!-- UWAGA: Elementy .project-item są dodawane przez JS. Należy zaktualizować JS, aby dodawał klasy 'neumorphic-raised-sm' i 'interactive-lift' -->
+        <ul id="project-list" class="project-list">
+          <!-- Project items will be injected here -->
+        </ul>
+      </div>
+    </main>
+
+    <!-- Environments Tab Content -->
+    <main id="environments" class="tab-content">
+      <div class="environments-layout">
+        <div class="card environments-list-card neumorphic-raised">
+          <div class="card-header">
+            <h2 class="text-gradient">Environments</h2>
+            <button id="add-env-btn" class="btn btn-primary neumorphic-raised interactive-lift">+</button>
+          </div>
+          <!-- UWAGA: Elementy .environment-item są dodawane przez JS. Należy zaktualizować JS, aby dodawał klasy 'neumorphic-raised-sm' i 'interactive-lift' -->
+          <ul id="environments-list" class="environments-list">
+            <!-- Environment items will be injected here -->
+          </ul>
+        </div>
+        <div class="card prompts-card neumorphic-raised">
+          <div class="card-header">
+            <h2 id="prompts-header" class="text-gradient">Prompts</h2>
+            <button id="add-prompt-btn" class="btn btn-primary neumorphic-raised interactive-lift" disabled>+</button>
+          </div>
+          <div id="prompts-container" class="prompts-container">
+             <!-- UWAGA: Elementy .prompt-item są dodawane przez JS. Należy zaktualizować JS, aby dodawał klasę 'neumorphic-raised-sm' -->
+             <p class="placeholder">Select an environment to see its prompts.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+     <!-- Backups Tab Content -->
+    <main id="backups" class="tab-content">
+      <div class="backups-layout">
+
+        <!-- Left Column: Projects & Snapshots List -->
+        <div class="card neumorphic-raised backups-list-card">
+          <div class="card-header">
+            <div class="header-left">
+              <button id="back-to-projects-btn" class="btn-icon-small" title="Back to Projects" style="display: none;">←</button>
+              <h2 class="text-gradient">Snapshots</h2>
+            </div>
+            <button id="refresh-backups-btn" class="btn-icon-small" title="Refresh">🔄</button>
+          </div>
+          <div id="backup-list-container" class="backup-list-scroll">
+            <p class="placeholder">Loading backups...</p>
+          </div>
+        </div>
+
+        <!-- Right Column: Backup Details & Restore -->
+        <div class="card neumorphic-raised backup-detail-card">
+          <div class="card-header">
+            <h2 class="text-gradient" id="backup-detail-title">Select a Project</h2>
+            <div class="actions">
+              <button id="restore-selected-btn" class="btn btn-primary neumorphic-raised interactive-lift" disabled>
+                ♻️ Restore Selected
+              </button>
+            </div>
+          </div>
+          <div id="backup-files-container" class="backup-files-scroll">
+            <p class="placeholder">Select a project on the left to view snapshots.</p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Auditor Tab Content -->
+    <main id="auditor" class="tab-content">
+      <div class="backups-layout">
+        <!-- Left: Projects & Files List -->
+        <div class="card neumorphic-raised backups-list-card">
+          <div class="card-header">
+            <div class="header-left">
+              <button id="auditor-back-to-projects-btn" class="btn-icon-small" title="Back to Projects" style="display: none;">←</button>
+              <h2 class="text-gradient">Projects & Files</h2>
+            </div>
+            <button id="auditor-refresh-btn" class="btn-icon-small" title="Refresh">🔄</button>
+          </div>
+          <div id="auditor-list-container" class="backup-list-scroll">
+            <p class="placeholder">Loading projects...</p>
+          </div>
+        </div>
+
+        <!-- Right: Audit Report View -->
+        <div class="card neumorphic-raised backup-detail-card">
+          <div class="card-header">
+            <h2 class="text-gradient" id="auditor-detail-title">Select a Project</h2>
+            <div class="actions">
+              <button id="open-report-btn" class="btn neumorphic-raised interactive-lift" style="display: none; margin-right: 10px;">
+                📄 Open Certificate
+              </button>
+              <button id="run-audit-btn" class="btn btn-primary neumorphic-raised interactive-lift" disabled>
+                🛡️ Run Audit
+              </button>
+            </div>
+          </div>
+          <div id="audit-report-container" class="backup-files-scroll">
+            <p class="placeholder">Select a project on the left to view files and run audit.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Workflows Tab Content -->
+    <main id="workflows" class="tab-content">
+      <div class="workflow-editor-container">
+        <!-- Left: Agent Palette -->
+        <div class="card neumorphic-raised palette-panel">
+          <div class="card-header">
+            <h2 class="text-gradient">Agents</h2>
+          </div>
+          <div class="palette-content" id="agent-palette">
+            <div class="palette-item interactive-lift" draggable="true" data-type="agent">
+              <span class="icon">🤖</span> Agent Node
+            </div>
+            <div class="palette-item interactive-lift" draggable="true" data-type="report">
+              <span class="icon">📊</span> Report Aggregator
+            </div>
+            <div class="palette-item interactive-lift" draggable="true" data-type="autoapply">
+              <span class="icon">⚡</span> Auto-Apply
+            </div>
+            <div class="palette-item interactive-lift" draggable="true" data-type="terminal">
+              <span class="icon">💻</span> Terminal Input
+            </div>
+          </div>
+          <div class="palette-footer">
+            <button id="wf-save-btn" class="btn btn-primary neumorphic-raised interactive-lift">💾 Save Graph</button>
+            <button id="wf-clear-btn" class="btn btn-danger neumorphic-raised interactive-lift" style="margin-top: 10px;">🗑️ Clear</button>
+          </div>
+        </div>
+
+        <!-- Center: Graph Canvas -->
+        <div class="card neumorphic-inset graph-canvas-container" id="graph-dropzone">
+          <div id="cy" class="cytoscape-container"></div>
+          <div class="canvas-controls">
+            <button id="wf-layout-btn" class="btn-icon-small" title="Auto Layout">🕸️</button>
+            <button id="wf-fit-btn" class="btn-icon-small" title="Fit View">🔍</button>
+          </div>
+          <div id="canvas-placeholder" class="placeholder-overlay">
+            <div class="placeholder-content">
+              <span style="font-size: 48px; opacity: 0.5;">🕸️</span>
+              <p>Drag agents here to build workflow</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Properties Panel -->
+        <div class="card neumorphic-raised properties-panel">
+          <div class="card-header">
+            <h2 class="text-gradient">Properties</h2>
+          </div>
+          <div id="wf-properties-content" class="properties-content">
+            <p class="placeholder">Select a node to edit properties.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Google Drive Tab Content -->
+    <main id="google-drive" class="tab-content">
+      <div class="card neumorphic-raised">
+        <div class="card-header">
+          <h2 class="text-gradient">Google Drive Integration</h2>
+          <div id="google-status-badge" class="status-badge"></div>
+        </div>
+        <div class="settings-content">
+          <!-- Step 1: Credentials -->
+          <div class="setting-section">
+            <h3>Step 1: OAuth Credentials</h3>
+            <p class="setting-hint">
+              Create OAuth credentials in <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: var(--accent);">Google Cloud Console</a>
+            </p>
+            <div class="setting-item">
+              <label for="google-client-id" class="setting-label">Client ID</label>
+              <div class="setting-control-group">
+                <input type="text" id="google-client-id" class="setting-input neumorphic-inset-sm" placeholder="Your Google OAuth Client ID">
+              </div>
+            </div>
+            <div class="setting-item">
+              <label for="google-client-secret" class="setting-label">Client Secret</label>
+              <div class="setting-control-group">
+                <input type="password" id="google-client-secret" class="setting-input neumorphic-inset-sm" placeholder="Your Google OAuth Client Secret">
+                <button id="save-google-creds-btn" class="btn btn-primary neumorphic-raised interactive-lift">Save Credentials</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Authentication -->
+          <div class="setting-section" id="google-login-section" style="display: none;">
+            <h3>Step 2: Authenticate</h3>
+            <p class="setting-hint">Connect your Google account to access Drive files</p>
+            <button id="google-login-btn" class="btn btn-primary neumorphic-raised interactive-lift">
+              <svg width="18" height="18" viewBox="0 0 48 48" style="margin-right: 8px; vertical-align: middle;">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
+              Login with Google
+            </button>
+          </div>
+
+          <!-- Step 3: Connected Status -->
+          <div class="setting-section" id="google-connected-section" style="display: none;">
+            <h3>✓ Connected to Google Drive</h3>
+            <p class="setting-hint" style="color: var(--success);">Your account is successfully connected</p>
+            <div class="setting-control-group">
+              <button id="google-logout-btn" class="btn btn-secondary neumorphic-raised interactive-lift">Logout</button>
+              <button id="test-google-connection-btn" class="btn neumorphic-raised interactive-lift">Test Connection</button>
+            </div>
+          </div>
+
+          <!-- Help Section -->
+          <div class="setting-section">
+            <h3>Setup Instructions</h3>
+            <ol class="setup-instructions">
+              <li>Go to <a href="https://console.cloud.google.com" target="_blank" style="color: var(--accent);">Google Cloud Console</a></li>
+              <li>Create a new project or select existing one</li>
+              <li>Enable <strong>Google Drive API</strong> and <strong>Google Docs API</strong></li>
+              <li>Create OAuth 2.0 credentials (Desktop App type)</li>
+              <li>Copy Client ID and Client Secret to the fields above</li>
+              <li>Add <code>http://localhost:8744/oauth/callback</code> to redirect URIs</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Updates Tab Content -->
+    <main id="updates" class="tab-content">
+      <div class="updates-layout">
+        <div class="card neumorphic-raised">
+          <div class="card-header">
+            <h2 class="text-gradient">License & Updates<span id="app-version-display" class="app-version"></span></h2>
+            <div id="license-status-indicator"></div>
+          </div>
+          <div class="settings-content">
+            <div class="setting-item">
+              <label for="license-key-input" class="setting-label">
+                Gumroad License Key
+                <span class="setting-hint">Your license key is required to receive application updates.</span>
+              </label>
+              <div class="setting-control-group">
+                <input type="password" id="license-key-input" class="setting-input neumorphic-inset-sm" placeholder="Enter your license key...">
+                <button id="save-license-key-btn" class="btn btn-primary neumorphic-raised interactive-lift">Save Key</button>
+              </div>
+            </div>
+            <div class="update-status-section">
+              <div id="update-status-container">
+                <p id="update-status-text" class="neumorphic-inset-sm">Ready to check for updates.</p>
+              </div>
+              <div class="update-actions">
+                <button id="check-for-updates-btn" class="btn neumorphic-raised interactive-lift" disabled>Check for Updates</button>
+                <button id="install-update-btn" class="btn btn-primary neumorphic-raised interactive-lift" style="display: none;">Install Update & Restart</button>
+              </div>
+            </div>
+            <div id="update-details" class="update-details" style="display: none;">
+              <h3 id="update-version"></h3>
+              <p id="update-notes"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <!-- Style Tab Content -->
+    <main id="style" class="tab-content">
+      <div class="card neumorphic-raised theme-selector-card">
+        <div class="card-header">
+          <h2 class="text-gradient">Interface Style</h2>
+        </div>
+        <div class="theme-buttons">
+          <button id="theme-gluon-v2" class="btn neumorphic-raised interactive-lift">Gluon v2</button>
+          <button id="theme-80s" class="btn neumorphic-raised interactive-lift">80s</button>
+        </div>
+        <div id="80s-color-settings" class="color-pickers" style="display: none;">
+          <div class="color-picker-wrapper">
+            <label for="color1-picker">Background</label>
+            <input type="color" id="color1-picker" value="#170b01">
+          </div>
+          <div class="color-picker-wrapper">
+            <label for="color2-picker">Accent</label>
+            <input type="color" id="color2-picker" value="#ff3300">
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- AI Chat Tab Content -->
+    <main id="ai-chat" class="tab-content">
+      <div class="ai-chat-layout">
+
+        <!-- Left: Sessions List -->
+        <div class="card neumorphic-raised ai-chat-sessions">
+          <div class="card-header">
+            <h2 class="text-gradient">Conversations</h2>
+            <div class="actions">
+              <button id="new-chat-btn" class="btn btn-primary neumorphic-raised interactive-lift">+ New Chat</button>
+            </div>
+          </div>
+
+          <div class="chat-provider-filter">
+            <select id="chat-provider-filter" class="neumorphic-inset-sm">
+              <option value="">All Providers</option>
+            </select>
+          </div>
+
+          <div id="chat-sessions-list" class="chat-sessions-scroll">
+            <p class="placeholder">No conversations yet. Start a new chat!</p>
+          </div>
+        </div>
+
+        <!-- Center: Chat Messages -->
+        <div class="card neumorphic-raised ai-chat-main">
+          <div class="card-header">
+            <div class="chat-session-info">
+              <h2 id="current-chat-title" class="text-gradient">Select a conversation</h2>
+              <span id="current-chat-provider" class="chat-provider-badge"></span>
+            </div>
+            <div class="actions">
+              <button id="export-chat-btn" class="btn neumorphic-raised interactive-lift" disabled>📤 Export</button>
+              <button id="delete-chat-btn" class="btn btn-danger neumorphic-raised interactive-lift" disabled>🗑️ Delete</button>
+            </div>
+          </div>
+
+          <div id="chat-messages-container" class="chat-messages-scroll">
+            <div class="chat-welcome">
+              <img src="assets/icons/icon_256.png" alt="Gluon" class="chat-welcome-logo">
+              <h3>Welcome to Gluon AI Chat</h3>
+              <p>Select a conversation or start a new one to begin</p>
+            </div>
+          </div>
+
+          <div class="chat-input-wrapper">
+            <div class="chat-input-container neumorphic-inset-sm">
+              <textarea id="chat-input" class="chat-input" placeholder="Type your message... (Shift+Enter for new line)" rows="1" disabled></textarea>
+              <button id="send-message-btn" class="btn-send neumorphic-raised-sm interactive-lift" disabled>➤</button>
+            </div>
+            <div class="chat-input-stats">
+              <span id="chat-token-count">0 tokens</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Settings & Info -->
+        <div class="card neumorphic-raised ai-chat-sidebar">
+          <div class="card-header">
+            <h2 class="text-gradient">Settings</h2>
+          </div>
+
+          <div class="chat-settings-section">
+            <h3>API Keys</h3>
+            <div class="api-key-list" id="api-keys-list"></div>
+          </div>
+
+          <div class="chat-settings-section">
+            <h3>Model Settings</h3>
+            <div class="model-settings-panel">
+              <div class="setting-item-compact">
+                <label for="model-select" class="setting-label-sm">Model</label>
+                <select id="model-select" class="setting-input-sm neumorphic-inset-sm" disabled>
+                  <option value="">Select a chat first</option>
+                </select>
+              </div>
+
+              <div class="setting-item-compact">
+                <label for="temperature-slider" class="setting-label-sm">
+                  Temperature: <span id="temperature-value">0.7</span>
+                </label>
+                <input type="range" id="temperature-slider" class="slider"
+                       min="0" max="2" step="0.1" value="0.7" disabled>
+                <div class="slider-labels">
+                  <span>Precise</span>
+                  <span>Creative</span>
+                </div>
+              </div>
+
+              <div class="setting-item-compact">
+                <label for="max-tokens-input" class="setting-label-sm">Max Tokens</label>
+                <input type="number" id="max-tokens-input"
+                       class="setting-input-sm neumorphic-inset-sm"
+                       min="100" max="32000" step="100" value="4096" disabled>
+              </div>
+
+              <div class="setting-item-compact">
+                <label for="top-p-slider" class="setting-label-sm">
+                  Top P: <span id="top-p-value">0.9</span>
+                </label>
+                <input type="range" id="top-p-slider" class="slider"
+                       min="0" max="1" step="0.05" value="0.9" disabled>
+              </div>
+
+              <div class="setting-item-compact">
+                <label for="frequency-penalty-slider" class="setting-label-sm">
+                  Frequency Penalty: <span id="frequency-penalty-value">0.0</span>
+                </label>
+                <input type="range" id="frequency-penalty-slider" class="slider"
+                       min="0" max="2" step="0.1" value="0" disabled>
+              </div>
+
+              <div class="setting-item-compact">
+                <label for="presence-penalty-slider" class="setting-label-sm">
+                  Presence Penalty: <span id="presence-penalty-value">0.0</span>
+                </label>
+                <input type="range" id="presence-penalty-slider" class="slider"
+                       min="0" max="2" step="0.1" value="0" disabled>
+              </div>
+
+              <button id="save-model-settings-btn" class="btn btn-primary neumorphic-raised interactive-lift"
+                      style="width: 100%; margin-top: 10px;" disabled>
+                💾 Save Settings
+              </button>
+            </div>
+          </div>
+
+          <div class="chat-settings-section" id="session-stats-section" style="display: none;">
+            <h3>Session Info</h3>
+            <div class="session-stat">
+              <span class="stat-label">Messages:</span>
+              <span id="stat-message-count" class="stat-value">0</span>
+            </div>
+            <div class="session-stat">
+              <span class="stat-label">Total Tokens:</span>
+              <span id="stat-token-total" class="stat-value">0</span>
+            </div>
+            <div class="session-stat">
+              <span class="stat-label">Created:</span>
+              <span id="stat-created-at" class="stat-value">-</span>
+            </div>
+          </div>
+
+          <div class="chat-settings-actions">
+            <button id="pin-session-btn" class="btn neumorphic-raised interactive-lift" disabled>📌 Pin Chat</button>
+            <button id="rename-session-btn" class="btn neumorphic-raised interactive-lift" disabled>✏️ Rename</button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+
+  <!-- Environment Editor Modal -->
+  <div id="env-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content neumorphic-raised">
+      <h2 id="env-modal-title" class="text-gradient">Create Environment</h2>
+      <form id="env-form">
+        <input type="hidden" id="env-id-input">
+        <div class="form-group form-group-inline">
+          <div class="emoji-preview-btn neumorphic-raised-sm" id="emoji-preview-btn" title="Click to change icon">
+            <span id="selected-emoji">🌐</span>
+          </div>
+          <div class="form-group-grow">
+            <label for="env-name">Name</label>
+            <input type="text" id="env-name" class="neumorphic-inset-sm" required>
+          </div>
+          <input type="hidden" id="env-icon">
+        </div>
+        <div class="form-group">
+          <label for="env-language">Language</label>
+          <select id="env-language" class="neumorphic-inset-sm">
+            <option value="en">English</option>
+            <option value="pl">Polski</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="env-system-prompt">System Prompt</label>
+          <textarea id="env-system-prompt" class="neumorphic-inset-sm" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="env-environment-prompt">Environment Prompt</label>
+          <textarea id="env-environment-prompt" class="neumorphic-inset-sm" rows="4"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="env-modal-cancel" class="btn neumorphic-raised interactive-lift">Cancel</button>
+          <button type="submit" class="btn btn-primary neumorphic-raised interactive-lift">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Prompt Editor Modal -->
+  <div id="prompt-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content neumorphic-raised">
+        <h2 id="prompt-modal-title" class="text-gradient">Create Prompt</h2>
+        <form id="prompt-form">
+            <input type="hidden" id="prompt-id-input">
+            <div class="form-group">
+                <label for="prompt-name">Name</label>
+                <input type="text" id="prompt-name" class="neumorphic-inset-sm" required>
+            </div>
+            <div class="form-group">
+              <label for="prompt-content">Content</label>
+              <textarea id="prompt-content" class="neumorphic-inset-sm" rows="12"></textarea>
+          </div>
+            <div class="form-group">
+                <label for="prompt-category">Category</label>
+                <select id="prompt-category" class="neumorphic-inset-sm" required>
+                    <option value="custom">Custom</option>
+                    <option value="system">System</option>
+                    <option value="environment">Environment</option>
+                </select>
+            </div>
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="prompt-enabled-default">
+              <label for="prompt-enabled-default">Enabled by default</label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="prompt-modal-delete" class="btn btn-danger neumorphic-raised interactive-lift" style="display: none;">Delete</button>
+                <button type="button" id="prompt-modal-cancel" class="btn neumorphic-raised interactive-lift">Cancel</button>
+                <button type="submit" class="btn btn-primary neumorphic-raised interactive-lift">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Project Settings Modal -->
+<div id="project-settings-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-content modal-wide neumorphic-raised">
+      <h2 id="project-settings-modal-title" class="text-gradient">Project Settings</h2>
+      <p id="project-settings-modal-path" class="modal-subtitle"></p>
+
+      <!-- TABS -->
+      <nav class="modal-tabs">
+        <button class="modal-tab-link active" data-tab="exclusions-tab">Exclusions</button>
+        <button class="modal-tab-link" data-tab="extensions-tab">Allowed Extensions</button>
+        <button class="modal-tab-link" data-tab="vector-map-tab">Vector Map</button>
+      </nav>
+
+      <!-- EXCLUSIONS TAB CONTENT -->
+      <div id="exclusions-tab" class="modal-tab-content active">
+        <div class="exclusions-layout">
+            <div class="exclusions-section">
+                <h3>Default Exclusions</h3>
+                <p class="section-hint">Click to toggle for this project.</p>
+                <div id="default-exclusions-list" class="exclusions-list interactive neumorphic-inset-sm"></div>
+                <div class="form-group-inline" style="margin-top: 10px;">
+                    <input type="text" id="new-default-exclusion-input" class="setting-input neumorphic-inset-sm" placeholder="Add new default...">
+                    <button id="add-default-exclusion-btn" class="btn btn-primary neumorphic-raised interactive-lift">Add Default</button>
+                </div>
+            </div>
+            <div class="exclusions-section">
+                <h3>Project Directory Tree</h3>
+                <p class="section-hint">Check folders to exclude (up to 10 levels)</p>
+                <div id="directory-tree-container" class="directory-tree-container neumorphic-inset-sm">
+                    <p class="placeholder">Loading directory tree...</p>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- EXTENSIONS TAB CONTENT (BRAKUJĄCA SEKCJA) -->
+      <div id="extensions-tab" class="modal-tab-content">
+        <div class="extensions-layout">
+          <div class="extensions-section">
+            <h3>Extension Templates</h3>
+            <p class="section-hint">Click a template to apply its configuration.</p>
+            <div id="extension-templates-list" class="templates-list neumorphic-inset-sm"></div>
+            <div class="form-group-inline" style="margin-top: 10px;">
+                <input type="text" id="new-template-name-input" class="setting-input neumorphic-inset-sm" placeholder="Save current as template...">
+                <button id="save-extension-template-btn" class="btn btn-primary neumorphic-raised interactive-lift">Save Template</button>
+            </div>
+          </div>
+          <div class="extensions-section">
+              <h3>Allowed File Extensions</h3>
+              <p class="section-hint">Click to toggle which file types are included in the context.</p>
+              <div id="allowed-extensions-list" class="extensions-list interactive neumorphic-inset-sm"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VECTOR MAP TAB CONTENT -->
+      <div id="vector-map-tab" class="modal-tab-content">
+        <div class="vector-map-layout">
+          <div class="vector-map-section">
+            <h3>Project Vector Map</h3>
+            <p class="section-hint">Choose which vector map this project uses for RAG embeddings. Maps can be shared between related projects.</p>
+
+            <div class="vector-map-selector neumorphic-inset-sm">
+              <label for="project-vector-map-select">Vector Map:</label>
+              <select id="project-vector-map-select" class="setting-input">
+                <option value="1">Default (Loading...)</option>
+              </select>
+
+              <button id="create-new-vector-map-btn" class="btn btn-secondary neumorphic-raised interactive-lift">
+                + New Map
+              </button>
+            </div>
+
+            <div class="vector-map-info neumorphic-inset-sm">
+              <h4 id="selected-map-name" class="text-gradient">Default</h4>
+              <div class="vector-map-stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Total Chunks:</span>
+                  <span id="map-total-chunks" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Total Files:</span>
+                  <span id="map-total-files" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Projects Using:</span>
+                  <span id="map-project-count" class="stat-value">1</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Size:</span>
+                  <span id="map-size-bytes" class="stat-value">0 MB</span>
+                </div>
+              </div>
+
+              <div class="vector-map-actions">
+                <button id="clear-map-btn" class="btn btn-warning neumorphic-raised interactive-lift">
+                  Clear Map
+                </button>
+                <button id="delete-map-btn" class="btn btn-danger neumorphic-raised interactive-lift">
+                  Delete Map
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="vector-map-section">
+            <h3>Shared Projects</h3>
+            <p class="section-hint">Other projects using the same vector map</p>
+            <div id="shared-projects-list" class="shared-projects-list neumorphic-inset-sm">
+              <p class="placeholder">No other projects share this map</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+          <button type="button" id="project-settings-modal-cancel" class="btn neumorphic-raised interactive-lift">Cancel</button>
+          <button type="button" id="project-settings-modal-save" class="btn btn-primary neumorphic-raised interactive-lift">Save Changes</button>
+      </div>
+  </div>
+</div>
+
+  <!-- Create New Vector Map Modal -->
+  <div id="new-vector-map-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-compact neumorphic-raised">
+      <h2 class="text-gradient">Create New Vector Map</h2>
+
+      <div class="form-group">
+        <label for="new-map-name">Map Name *</label>
+        <input type="text" id="new-map-name" class="setting-input neumorphic-inset-sm"
+               placeholder="e.g., Frontend Shared" maxlength="50" required>
+      </div>
+
+      <div class="form-group">
+        <label for="new-map-description">Description (Optional)</label>
+        <textarea id="new-map-description" class="setting-input neumorphic-inset-sm"
+                  rows="3" placeholder="Describe what this map is for..." maxlength="200"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="new-map-cancel" class="btn neumorphic-raised interactive-lift">Cancel</button>
+        <button type="button" id="new-map-save" class="btn btn-primary neumorphic-raised interactive-lift">Create Map</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div id="api-key-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-compact neumorphic-raised">
+      <h2 class="text-gradient">Configure API Key</h2>
+      <p class="section-hint" id="api-key-modal-provider-name">Provider</p>
+
+      <div class="form-group">
+        <label for="api-key-input">API Key</label>
+        <input
+          type="password"
+          id="api-key-input"
+          class="setting-input neumorphic-inset-sm"
+          placeholder="Enter your API key..."
+        >
+        <small class="hint">Keys are stored securely in Windows Credential Manager</small>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="api-key-modal-cancel" class="btn neumorphic-raised interactive-lift">Cancel</button>
+        <button type="button" id="api-key-modal-save" class="btn btn-primary neumorphic-raised interactive-lift">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Chat Modal -->
+  <div id="new-chat-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-compact neumorphic-raised">
+      <h2 class="text-gradient">New Chat Session</h2>
+
+      <div class="form-group">
+        <label for="new-chat-provider">AI Provider</label>
+        <select id="new-chat-provider" class="setting-input neumorphic-inset-sm">
+          <option value="">Select provider...</option>
+          <!-- Options will be populated by JavaScript -->
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="new-chat-title">Session Title (Optional)</label>
+        <input
+          type="text"
+          id="new-chat-title"
+          class="setting-input neumorphic-inset-sm"
+          placeholder="Leave empty for auto-generated title"
+        >
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="new-chat-modal-cancel" class="btn neumorphic-raised interactive-lift">Cancel</button>
+        <button type="button" id="new-chat-modal-create" class="btn btn-primary neumorphic-raised interactive-lift">Create Chat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Syntax Highlighting & Markdown -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+
+  <!-- Main script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <script src="features/workflows/workflow-manager.js"></script>
+  <script src="features/workflows/graph-workflow-editor.js"></script>
+  <script src="main.js"></script>
+  <script src="features/backupUI.js"></script>
+  <script src="features/googleDriveUI.js"></script>
+  <script src="features/aiChatUI.js"></script>
+
+  <!-- Emoji Picker Modal -->
+  <div id="emoji-picker-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-compact neumorphic-raised">
+      <h2 class="text-gradient">Select Icon</h2>
+      <div class="emoji-grid neumorphic-inset-sm" id="emoji-grid">
+        <!-- Emoji options will be generated by JS -->
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="emoji-picker-cancel" class="btn neumorphic-raised interactive-lift">Cancel</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

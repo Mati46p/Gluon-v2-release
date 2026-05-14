@@ -1,0 +1,32 @@
+<idea-plugin>
+    <id>com.gluon.jetbrains</id>
+    <name>Gluon</name>
+    <vendor email="support@gluon.ai" url="https://gluon.ai">Gluon</vendor>
+
+    <description><![CDATA[
+    Gluon integration for JetBrains IDEs.<br>
+    Enables bi-directional communication with Gluon Desktop App.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Register Project Service -->
+        <projectService serviceImplementation="com.gluon.GluonProjectService"/>
+
+        <!-- Startup Activity to auto-connect -->
+        <postStartupActivity implementation="com.gluon.GluonStartupActivity"/>
+
+        <!-- Notification Group -->
+        <notificationGroup id="Gluon Notifications"
+                          displayType="BALLOON"
+                          isLogByDefault="true"/>
+    </extensions>
+
+    <actions>
+        <group id="Gluon.Menu" text="Gluon" popup="true">
+            <action id="Gluon.Reconnect" class="com.gluon.ReconnectGluonAction" text="Reconnect to Gluon"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </group>
+    </actions>
+</idea-plugin>

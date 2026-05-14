@@ -1,0 +1,1082 @@
+/* ============================================================================
+   Gluon Response Overlay - Modern Neumorphic Design
+   Matches sidebar.css design patterns
+   ============================================================================ */
+
+:root {
+  /* Core colors (matching sidebar) */
+  --gluon-bg-primary: #0a0d1a;
+  --gluon-bg-secondary: #0f1729;
+  --gluon-bg-tertiary: #1a2238;
+  --gluon-bg-hover: #242c44;
+
+  /* Accents */
+  --gluon-accent-blue: #00d4ff;
+  --gluon-accent-green: #00ff88;
+  --gluon-accent-purple: #6366f1;
+  --gluon-accent-gradient: linear-gradient(145deg, #00d4ff, #00ff88);
+
+  /* Text */
+  --gluon-text-primary: #e2e8f0;
+  --gluon-text-secondary: #94a3b8;
+  --gluon-text-muted: #64748b;
+  --gluon-text-on-accent-dark: #18223a;
+
+  /* UI elements */
+  --gluon-border-color: #334155;
+  --gluon-border-light: #475569;
+
+  /* Neumorphic shadows */
+  --gluon-shadow-dark: rgba(0, 0, 0, 0.6);
+  --gluon-shadow-light: rgba(26, 34, 56, 0.3);
+
+  /* Status */
+  --gluon-status-success: #00ff88;
+  --gluon-status-error: #ef4444;
+  --gluon-status-warning: #f59e0b;
+}
+
+/* Animations */
+@keyframes gluonFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gluonSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Main overlay container */
+.gluon-response-overlay {
+  /* CRITICAL FIX: Prevent overlay from appearing inside code blocks */
+  /* This happens because Markdown renderers sometimes wrap injected HTML in pre/code */
+  display: block;
+}
+/* Ensure the overlay is hidden if it accidentally renders inside a code block */
+pre .gluon-response-overlay,
+code .gluon-response-overlay,
+.mat-mdc-card-content pre .gluon-response-overlay {
+    display: none !important;
+}
+
+.gluon-response-overlay {
+  background: var(--gluon-bg-secondary);
+  border: 1px solid var(--gluon-border-color);
+  border-radius: 12px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 13px;
+  color: var(--gluon-text-primary);
+  box-shadow: 4px 4px 12px var(--gluon-shadow-dark), -2px -2px 8px var(--gluon-shadow-light);
+  animation: gluonFadeIn 0.3s ease;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  /* Izolacja nakładki od stylów Gemini */
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.gluon-response-overlay * {
+  box-sizing: inherit !important;
+}
+
+/* =========================================
+   GLUON: GEMINI WEB APP CSS RESET
+   ========================================= */
+/* Resetowanie agresywnych marginesów z klasy .markdown */
+.markdown .gluon-response-overlay p,
+.markdown .gluon-response-overlay div,
+.markdown .gluon-response-overlay details,
+.markdown .gluon-response-overlay summary,
+.markdown .gluon-overlay-container p,
+.markdown .gluon-overlay-container div {
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Zabezpieczenie przycisków przed dziedziczeniem stylów z Gemini */
+.markdown .gluon-response-overlay button,
+.markdown .gluon-overlay-container button {
+  margin: 0 !important;
+  font-family: inherit !important;
+}
+
+/* Zabezpieczenie kodu w nakładce */
+.markdown .gluon-response-overlay pre,
+.markdown .gluon-response-overlay code {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Odblokowanie szerokości w kontenerze Gemini */
+code-block .formatted-code-block-internal-container,
+code-block {
+  overflow: visible !important;
+  display: block !important;
+}
+
+/* Collapsed state - compact bar */
+.gluon-response-overlay.collapsed {
+  box-shadow:
+    2px 2px 6px var(--gluon-shadow-dark),
+    -1px -1px 3px var(--gluon-shadow-light);
+}
+
+.gluon-response-overlay.collapsed .gluon-overlay-header {
+  border-bottom: none;
+}
+
+/* Header */
+.gluon-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--gluon-accent-gradient);
+  color: var(--gluon-text-on-accent-dark);
+  font-weight: 700;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.gluon-overlay-header:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.gluon-overlay-header:active {
+  filter: brightness(0.95);
+}
+
+.gluon-overlay-header.error {
+  background: linear-gradient(145deg, #ef4444, #dc2626);
+  color: #fff;
+}
+
+.gluon-overlay-header.partial {
+  background: linear-gradient(145deg, #f59e0b, #d97706);
+  color: var(--gluon-text-on-accent-dark);
+}
+
+.gluon-overlay-logo {
+  font-size: 20px;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.gluon-overlay-title {
+  flex: 1;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.gluon-toggle-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+  opacity: 0.8;
+}
+
+.gluon-response-overlay.expanded .gluon-toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Expandable content wrapper */
+.gluon-overlay-expandable {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.gluon-response-overlay.expanded .gluon-overlay-expandable {
+  max-height: calc(100vh - 200px); /* Dynamicznie dostosuj do wysokości ekranu */
+  overflow-y: auto; /* Włącz scroll gdy zawartość za długa */
+  overflow-x: hidden;
+}
+
+/* Legacy - może być używany w starych wersjach */
+.gluon-btn-ignore {
+  display: none; /* Ukryj - nie używamy już tego przycisku */
+}
+
+/* Content */
+.gluon-overlay-content {
+  padding: 16px;
+  background: var(--gluon-bg-secondary);
+}
+
+.gluon-overlay-content p {
+  margin: 0 0 12px 0;
+  color: var(--gluon-text-secondary);
+  line-height: 1.5;
+}
+
+.gluon-overlay-content p strong {
+  color: var(--gluon-text-primary);
+  font-weight: 600;
+}
+
+/* File list */
+.gluon-overlay-filelist {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gluon-overlay-filelist li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--gluon-bg-tertiary);
+  border: 1px solid var(--gluon-border-color);
+  border-radius: 8px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 12px;
+  color: var(--gluon-text-secondary);
+  transition: all 0.2s ease;
+  animation: gluonSlideIn 0.3s ease backwards;
+}
+
+.gluon-overlay-filelist li:nth-child(1) { animation-delay: 0.05s; }
+.gluon-overlay-filelist li:nth-child(2) { animation-delay: 0.1s; }
+.gluon-overlay-filelist li:nth-child(3) { animation-delay: 0.15s; }
+.gluon-overlay-filelist li:nth-child(4) { animation-delay: 0.2s; }
+.gluon-overlay-filelist li:nth-child(5) { animation-delay: 0.25s; }
+
+.gluon-overlay-filelist li:hover {
+  background: var(--gluon-bg-hover);
+  border-color: var(--gluon-accent-blue);
+  transform: translateX(4px);
+  box-shadow:
+    3px 3px 6px var(--gluon-shadow-dark),
+    -2px -2px 4px var(--gluon-shadow-light);
+}
+
+.file-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.3));
+}
+
+.file-path {
+  flex: 1;
+  color: var(--gluon-text-primary);
+  word-break: break-all;
+}
+
+/* Actions */
+.gluon-overlay-actions {
+  padding: 12px 16px;
+  background: var(--gluon-bg-tertiary);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--gluon-border-color);
+  transition: all 0.2s ease;
+}
+
+.gluon-response-overlay.collapsed .gluon-overlay-actions {
+  padding: 10px 16px;
+  border-top: none;
+  background: transparent;
+}
+
+.gluon-overlay-actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  border: 1px solid var(--gluon-border-color);
+  background: var(--gluon-bg-secondary);
+  color: var(--gluon-text-secondary);
+  box-shadow:
+    2px 2px 4px var(--gluon-shadow-dark),
+    -1px -1px 2px var(--gluon-shadow-light);
+}
+
+.gluon-overlay-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    4px 4px 8px var(--gluon-shadow-dark),
+    -2px -2px 4px var(--gluon-shadow-light);
+}
+
+.gluon-overlay-actions button:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 2px 2px 4px rgba(0, 0, 0, 0.4),
+    inset -1px -1px 2px rgba(26, 34, 56, 0.2);
+}
+
+.gluon-btn-apply {
+  background: var(--gluon-accent-gradient) !important;
+  color: var(--gluon-text-on-accent-dark) !important;
+  border-color: var(--gluon-accent-blue) !important;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+}
+
+.gluon-btn-apply:hover {
+  box-shadow:
+    4px 4px 8px var(--gluon-shadow-dark),
+    -2px -2px 4px var(--gluon-shadow-light),
+    0 0 16px rgba(0, 212, 255, 0.4) !important;
+}
+
+.gluon-btn-apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Reasoning section */
+.overlay-reasoning {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(99, 102, 241, 0.08);
+  border-left: 3px solid var(--gluon-accent-purple);
+  border-radius: 8px;
+  animation: gluonSlideIn 0.3s ease;
+}
+
+.overlay-reasoning strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gluon-accent-purple);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.overlay-reasoning p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--gluon-text-secondary);
+  font-size: 12px;
+}
+
+/* Handoff sections container */
+.handoff-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* Files section */
+.overlay-files-section {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gluon-border-color);
+}
+
+.overlay-files-section > p {
+  margin-bottom: 12px;
+  color: var(--gluon-text-primary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.overlay-files-section > p strong {
+  color: var(--gluon-accent-blue);
+}
+
+/* Files list sections */
+.files-list {
+  margin-bottom: 16px;
+}
+
+.files-list strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gluon-accent-blue);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.files-list ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.files-list li {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 11px;
+  padding: 6px 10px;
+  background: var(--gluon-bg-tertiary);
+  border-radius: 4px;
+  color: var(--gluon-text-secondary);
+  border-left: 2px solid var(--gluon-border-color);
+  transition: all 0.2s ease;
+}
+
+.files-list li:hover {
+  border-left-color: var(--gluon-accent-blue);
+  background: var(--gluon-bg-hover);
+}
+
+/* Partial state */
+.gluon-response-overlay.partial .gluon-overlay-header {
+  background: linear-gradient(145deg, var(--gluon-status-warning), #d97706);
+}
+
+.gluon-overlay-split-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.gluon-overlay-split-list .list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gluon-overlay-split-list .list-section strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.gluon-overlay-split-list .list-section:first-child strong {
+  color: var(--gluon-status-success);
+}
+
+.gluon-overlay-split-list .list-section:last-child strong {
+  color: var(--gluon-status-error);
+}
+
+.gluon-overlay-split-list .list-section ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gluon-overlay-split-list .list-section:first-child li {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid var(--gluon-status-success);
+  color: var(--gluon-status-success);
+}
+
+.gluon-overlay-split-list .list-section:first-child li:hover {
+  background: rgba(0, 255, 136, 0.15);
+  border-color: var(--gluon-status-success);
+  transform: translateX(4px);
+}
+
+.gluon-overlay-split-list .list-section:last-child li {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--gluon-status-error);
+  color: var(--gluon-status-error);
+}
+
+.gluon-overlay-split-list .list-section:last-child li:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--gluon-status-error);
+}
+
+.file-icon-missing {
+  font-size: 16px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.3));
+}
+
+.file-path-missing {
+  flex: 1;
+  word-break: break-all;
+  color: var(--gluon-status-error);
+}
+
+/* Error state */
+.gluon-response-overlay.error .gluon-overlay-header {
+  background: linear-gradient(145deg, var(--gluon-status-error), #dc2626);
+  color: #fff;
+}
+
+/* Prompt handoff */
+.prompt-handoff .prompt-preview-code {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  background-color: var(--gluon-bg-primary);
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--gluon-border-color);
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 11px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  color: var(--gluon-text-secondary);
+  line-height: 1.5;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Context handoff */
+.gluon-response-overlay.context-handoff {
+  border-left: 4px solid var(--gluon-accent-purple);
+}
+
+.gluon-response-overlay.context-handoff .gluon-overlay-header {
+  background: linear-gradient(135deg, #8b5cf6, var(--gluon-accent-purple));
+}
+
+/* Prompt handoff */
+.gluon-response-overlay.prompt-handoff {
+  border-left: 4px solid var(--gluon-accent-green);
+}
+
+.gluon-response-overlay.prompt-handoff .gluon-overlay-header {
+  background: linear-gradient(135deg, var(--gluon-accent-green), #00cc66);
+}
+
+.gluon-response-overlay.prompt-handoff .handoff-section {
+  background: rgba(0, 255, 136, 0.08);
+  border-left-color: var(--gluon-accent-green);
+}
+
+.gluon-response-overlay.prompt-handoff .handoff-section strong {
+  color: var(--gluon-accent-green);
+}
+
+.handoff-section {
+  padding: 12px;
+  background: rgba(139, 92, 246, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid var(--gluon-accent-purple);
+  animation: gluonSlideIn 0.3s ease backwards;
+}
+
+.handoff-sections .handoff-section:nth-child(1) { animation-delay: 0.05s; }
+.handoff-sections .handoff-section:nth-child(2) { animation-delay: 0.1s; }
+.handoff-sections .handoff-section:nth-child(3) { animation-delay: 0.15s; }
+.handoff-sections .handoff-section:nth-child(4) { animation-delay: 0.2s; }
+.handoff-sections .handoff-section:nth-child(5) { animation-delay: 0.25s; }
+
+.handoff-section strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gluon-accent-purple);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.handoff-section p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--gluon-text-secondary);
+  font-size: 12px;
+}
+
+.handoff-section ul,
+.handoff-section ol {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+}
+
+.handoff-section ul {
+  list-style-type: disc;
+}
+
+.handoff-section ol {
+  list-style-type: decimal;
+}
+
+.handoff-section ul li,
+.handoff-section ol li {
+  margin: 6px 0;
+  color: var(--gluon-text-secondary);
+  line-height: 1.5;
+  font-size: 12px;
+}
+
+.handoff-section ol li {
+  padding-left: 4px;
+}
+
+.handoff-files {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gluon-border-color);
+}
+
+.handoff-summary {
+  margin-bottom: 14px;
+  padding: 12px;
+  background: rgba(139, 92, 246, 0.12);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.handoff-section .prompt-preview-code {
+  padding: 12px;
+  background: var(--gluon-bg-primary);
+  border-radius: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Scrollbar styling */
+.prompt-preview-code::-webkit-scrollbar,
+.handoff-section .prompt-preview-code::-webkit-scrollbar {
+  width: 8px;
+}
+
+.prompt-preview-code::-webkit-scrollbar-track,
+.handoff-section .prompt-preview-code::-webkit-scrollbar-track {
+  background: var(--gluon-bg-primary);
+  border-radius: 4px;
+}
+
+.prompt-preview-code::-webkit-scrollbar-thumb,
+.handoff-section .prompt-preview-code::-webkit-scrollbar-thumb {
+  background: var(--gluon-border-color);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.prompt-preview-code::-webkit-scrollbar-thumb:hover,
+.handoff-section .prompt-preview-code::-webkit-scrollbar-thumb:hover {
+  background: var(--gluon-accent-blue);
+}
+
+/* Claude.ai input formatting fix */
+.ProseMirror[contenteditable="true"] {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+.gluon-overlay-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 8px 16px;
+    margin-top: -12px; /* Lekkie nasunięcie na blok kodu */
+    margin-bottom: 16px;
+    background: rgba(13, 17, 23, 0.8);
+    border: 1px solid #16191d;
+    border-top: none;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    backdrop-filter: blur(4px);
+    font-family: 'Roboto', sans-serif;
+    z-index: 10;
+    position: relative;
+    max-width: 90%; /* UX FIX: Nie wychodź poza ekran */
+    box-sizing: border-box;
+}
+
+.gluon-apply-btn {
+    background: linear-gradient(135deg, #238636, #2ea043);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    white-space: nowrap; /* UX FIX: Zapobiegaj łamaniu tekstu "Retr y" */
+    flex-shrink: 0; /* UX FIX: Zapobiegaj zgniataniu przycisku */
+}
+
+.gluon-apply-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    filter: brightness(1.1);
+}
+
+.gluon-apply-btn:active {
+    transform: translateY(0);
+}
+
+.gluon-apply-btn.processing {
+    background: #db6d28; /* Pomarańczowy */
+    cursor: wait;
+}
+
+.gluon-apply-btn.success {
+    background: #1f6feb; /* Niebieski lub Ciemnozielony */
+    cursor: default;
+    pointer-events: none;
+}
+
+.gluon-apply-btn.error {
+    background: #da3633;
+}
+
+.gluon-stop-btn {
+    background: linear-gradient(135deg, #da3633, #f85149);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.gluon-stop-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    filter: brightness(1.1);
+}
+
+.gluon-stop-btn:active {
+    transform: translateY(0);
+}
+
+.gluon-stop-btn.hidden {
+    display: none;
+}
+
+.gluon-stop-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- LIVE FEEDBACK SYSTEM --- */
+
+.gluon-overlay-container {
+    gap: 12px; /* Odstęp między paskiem a przyciskiem */
+}
+.gluon-status-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 12px;
+    color: #e6edf3;
+    background: rgba(13, 17, 23, 0.5);
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    transition: opacity 0.3s ease;
+    height: 32px;
+    max-width: 100%;
+    white-space: nowrap; /* Wymuś jedną linię */
+}
+
+.gluon-status-panel.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.gluon-progress-track {
+    width: 100px; /* Nieco mniejszy pasek dla kompaktowości */
+    min-width: 100px;
+    height: 6px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0; /* Nie zgniataj paska */
+}
+
+.gluon-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00d4ff, #00ff88);
+    width: 0%;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+}
+
+.gluon-status-text {
+    min-width: 100px;
+    max-width: 350px; /* UX FIX: Mniejszy limit szerokości */
+    white-space: nowrap; /* UX FIX: Jedna linia */
+    overflow: hidden; /* UX FIX: Ukryj nadmiar */
+    text-overflow: ellipsis; /* UX FIX: Dodaj "..." */
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.gluon-step-icon {
+    margin-right: 6px;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; text-shadow: 0 0 8px rgba(0, 212, 255, 0.4); }
+    100% { opacity: 0.8; }
+}
+
+.gluon-status-text.active {
+    animation: pulse-glow 1.5s infinite;
+    color: #58a6ff;
+}
+
+.gluon-status-text.success {
+    color: #3fb950;
+    font-weight: 700;
+}
+
+.gluon-status-text.error {
+    color: #f85149;
+    font-weight: 700;
+}
+
+.gluon-progress-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 0;
+    width: 100%;
+}
+
+.gluon-progress-bar-bg {
+    flex: 1;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    overflow: hidden;
+    min-width: 50px;
+}
+
+.gluon-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #58a6ff, #79c0ff);
+    width: 0%;
+    transition: width 0.2s ease;
+}
+
+.gluon-progress-text {
+    font-size: 12px;
+    color: #8b949e;
+    flex: 1;
+    min-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gluon-progress-details {
+    font-size: 11px;
+    color: #6e7681;
+    margin-left: 4px;
+}
+
+.gluon-progress-cancel-btn {
+    background: linear-gradient(135deg, #da3633, #f85149);
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.gluon-progress-cancel-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.gluon-progress-cancel-btn:active {
+    transform: translateY(0);
+}
+
+.gluon-progress-cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- INLINE DIFF VIEWER (Unified Git Style) --- */
+.gluon-inline-diff-container {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    margin: 12px 0;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.gluon-diff-header {
+    background: #161b22;
+    padding: 8px 12px;
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gluon-diff-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #c9d1d9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gluon-diff-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.gluon-toggle-raw-btn {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gluon-toggle-raw-btn:hover {
+    background: #21262d;
+    color: #c9d1d9;
+}
+
+.gluon-diff-content {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-x: auto;
+    padding: 0;
+}
+
+/* Wiersz kodu diffa */
+.gluon-diff-line {
+    display: flex;
+    width: 100%;
+}
+
+/* Numery linii */
+.gluon-line-number {
+    width: 35px;
+    min-width: 35px;
+    padding: 2px 8px 2px 0;
+    text-align: right;
+    color: #484f58;
+    user-select: none;
+    border-right: 1px solid #30363d;
+    background: #0d1117;
+    font-size: 11px;
+}
+
+/* Treść kodu */
+.gluon-line-content {
+    padding: 2px 10px;
+    white-space: pre-wrap;
+    flex: 1;
+    word-break: break-all;
+    color: #e6edf3;
+}
+
+/* Kolorowanie usuniętych */
+.gluon-diff-line.removed {
+    background: rgba(248, 81, 73, 0.15);
+}
+.gluon-diff-line.removed .gluon-line-number {
+    background: rgba(248, 81, 73, 0.1);
+    color: #ff7b72;
+}
+
+/* Kolorowanie dodanych */
+.gluon-diff-line.added {
+    background: rgba(46, 160, 67, 0.15);
+}
+.gluon-diff-line.added .gluon-line-number {
+    background: rgba(46, 160, 67, 0.1);
+    color: #3fb950;
+}
+
+/* Kontekst */
+.gluon-diff-line.context .gluon-line-content {
+    opacity: 0.8;
+}
+
+/* Ukrywanie oryginalnego bloku */
+.gluon-code-hidden {
+    display: none !important;
+}
+
+/* Scrollbar w overlay content */
+.gluon-response-overlay.expanded .gluon-overlay-expandable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.gluon-response-overlay.expanded .gluon-overlay-expandable::-webkit-scrollbar-track {
+  background: #0d1117;
+  border-radius: 4px;
+}
+
+.gluon-response-overlay.expanded .gluon-overlay-expandable::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.gluon-response-overlay.expanded .gluon-overlay-expandable::-webkit-scrollbar-thumb:hover {
+  background: #8b949e;
+}

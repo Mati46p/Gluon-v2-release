@@ -1,0 +1,99 @@
+{
+  "workflow_name": "Test: Vision Analysis with Screenshots",
+  "description": "Integration test for graph execution with screenshot capture and vision model analysis",
+  "version": "1.0",
+  "graph": {
+    "entry_node": "navigator_node",
+    "nodes": [
+      {
+        "id": "navigator_node",
+        "name": "Page Navigator",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Navigate to {{target_url}} and wait for the page to load.",
+          "tools": ["browser_navigate"],
+          "max_iterations": 1
+        }
+      },
+      {
+        "id": "screenshot_node",
+        "name": "Screenshot Capturer",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Capture a screenshot of the current page using the capture_screenshot tool.",
+          "tools": ["capture_screenshot"],
+          "max_iterations": 1
+        }
+      },
+      {
+        "id": "vision_analyzer_node",
+        "name": "Vision Analyzer",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Analyze this screenshot: {{screenshot_base64}}. Describe what you see on the page, including any UI elements, text, and layout.",
+          "max_iterations": 1,
+          "supports_vision": true
+        }
+      },
+      {
+        "id": "end_node",
+        "name": "Complete",
+        "type": "Action",
+        "config": {
+          "action": "log",
+          "message": "Vision analysis completed"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "navigator_node",
+        "to": "screenshot_node",
+        "type": "Default"
+      },
+      {
+        "from": "screenshot_node",
+        "to": "vision_analyzer_node",
+        "type": "Default"
+      },
+      {
+        "from": "vision_analyzer_node",
+        "to": "end_node",
+        "type": "Default"
+      }
+    ]
+  },
+  "blackboard_init": {
+    "target_url": "https://example.com",
+    "screenshot_base64": null,
+    "screenshot_width": 0,
+    "screenshot_height": 0,
+    "token_estimate": 0,
+    "vision_analysis": ""
+  },
+  "browser_config": {
+    "mode": "parasitic",
+    "debugging_port": 9222
+  },
+  "screenshot_config": {
+    "quality": 80,
+    "format": "JPEG",
+    "max_width": 1920,
+    "capture_mode": "Viewport"
+  },
+  "budget": {
+    "limit_cents": 200
+  },
+  "test_expectations": {
+    "should_complete": true,
+    "max_execution_time_seconds": 120,
+    "expected_blackboard_keys": ["target_url", "screenshot_base64", "screenshot_width", "screenshot_height", "token_estimate", "vision_analysis"],
+    "expected_tool_calls": ["browser_navigate", "capture_screenshot"],
+    "screenshot_captured": true,
+    "screenshot_format": "JPEG",
+    "token_estimate_calculated": true
+  }
+}

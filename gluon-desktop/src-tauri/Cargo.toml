@@ -1,0 +1,153 @@
+[package]
+name = "gluon-desktop"
+version = "0.3.7"
+description = "Gluon v2"
+authors = ["Mati0x"]
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "gluon_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.5.1", features = [] }
+
+[dependencies]
+tauri = { version = "2.9.1", features = ["tray-icon"] }
+tauri-plugin-opener = "2.5.2"
+tauri-plugin-dialog = "2.4.2"
+tauri-plugin-updater = "2.9.0"
+tauri-plugin-process = "2.3.1"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+tokio = { version = "1.48.0", features = ["full"] }
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite", "macros", "migrate"] }
+async-trait = "0.1"
+walkdir = "2.5.0"
+tokio-tungstenite = { version = "0.28.0", features = ["native-tls"] } 
+futures-util = "0.3.31"
+futures-core = "0.3.31"
+bytes = "1.5"
+eventsource-stream = "0.2"
+chrono = { version = "0.4.42", features = ["serde"] }
+reqwest = { version = "0.12.27", features = ["json", "blocking", "stream"] }
+base64 = "0.22.1"
+mime_guess = "2.0.5"
+uuid = { version = "1.19", features = ["v4", "v5"] }
+sha2 = "0.10.9"
+regex = "1.12.2"
+strsim = "0.11"
+dirs = "6.0.0"
+lazy_static = "1.5"
+scraper = "0.25"
+html-escape = "0.2"
+
+# --- GOOGLE DRIVE INTEGRATION ---
+oauth2 = "4.4"           # OAuth 2.0 client
+keyring = "3.0"          # Secure token storage (Windows Credential Locker / macOS Keychain)
+url = "2.5"              # URL parsing for OAuth redirects
+open = "5.0"             # Open browser for OAuth
+
+# --- GLUON ANALYSIS ENGINE DEPENDENCIES ---
+# Core parsing library
+tree-sitter = "0.26"
+
+# Language Grammars
+tree-sitter-python = "0.25"
+tree-sitter-javascript = "0.25"
+tree-sitter-typescript = "0.23"
+tree-sitter-rust = "0.24"
+tree-sitter-go = "0.25"
+tree-sitter-java = "0.23"
+tree-sitter-cpp = "0.23"
+
+# Debug system dependencies
+similar = "2.7"          # For diff generation
+sys-info = "0.9"         # For system information
+num_cpus = "1.17"        # For CPU count
+
+# --- ENHANCED MATCHING ENGINE (Gluon v2 Report) ---
+# Note: ast-grep requires tree-sitter 0.24.x (conflicts with our 0.26)
+# Solution: Implement pattern matching directly using tree-sitter 0.26
+# See: structural_matcher.rs for AST metavariable support
+
+# SIMD-optimized fuzzy matching (Document IV Section 3.4)
+# Note: Using rapidfuzz-rs for Rust implementation of Python's rapidfuzz
+# If not available, fallback to nucleo-matcher or simsearch
+nucleo-matcher = "0.3"   # High-performance fuzzy matcher with SIMD
+
+# Parallel processing for large codebases (Document IV Section 7)
+rayon = "1.11"           # Data parallelism for batch matching
+
+# Fast parser combinators for XML protocol (Document IV Section 2)
+winnow = "0.7"           # Modern parser combinator (nom successor)
+
+# --- SENSORS SUBSYSTEM (Phase 2) ---
+# Chrome DevTools Protocol for browser instrumentation
+chromiumoxide = { version = "0.7", features = ["tokio-runtime"] }
+
+# Image processing for screenshot optimization
+image = { version = "0.25", features = ["png", "jpeg"] }
+
+# LRU cache for screenshot management
+lru = "0.12"
+
+# --- PHASE 3: HOLOGRAPHIC MEMORY ---
+# Vector database
+# TEMPORARILY DISABLED: lancedb 0.4 pulls arrow-arith 51.0 which has chrono conflict
+# lancedb = "0.4"              # Embedded vector DB (downgraded for arrow compat)
+# arrow = "=50.0"              # Apache Arrow (LanceDB backend - compatible with chrono 0.4)
+# arrow-arith = "=50.0"        # Explicit version lock to avoid 51.0 chrono conflict
+# arrow-array = "=50.0"        # Keep all arrow deps in sync
+# arrow-schema = "=50.0"       # Keep all arrow deps in sync
+
+# Full-text search (MVP solution while LanceDB is blocked)
+tantivy = "0.22"             # Embedded BM25 search engine - local-first, fast
+once_cell = "1.19"           # Lazy static initialization for embedding provider
+thiserror = "2.0"            # Error derive macros
+bincode = "1.3"              # Binary serialization for Vec<f32> to SQLite BLOB
+
+# Git integration
+git2 = "0.18"                # Git repository access
+
+# File watching
+notify = "6.1"               # Cross-platform file watcher
+notify-debouncer-full = "0.3" # Debouncing for file events
+
+# --- PHASE 4: INTERFACE LAYER (G-PROTOCOL & MCP) ---
+# JSON Schema generation for tool definitions
+schemars = { version = "0.8", features = ["derive"] }
+
+# Async utilities for MCP transport
+tokio-util = { version = "0.7", features = ["codec"] }
+
+# --- PHASE 5: THE COMMAND CENTER (UI & COCKPIT) ---
+# Virtual Terminal (PTY) for shared console between user and agents
+portable-pty = "0.8"             # Cross-platform PTY (pseudo-terminal) support
+
+# High-performance event broadcasting for real-time UI updates
+crossbeam-channel = "0.5"        # Multi-producer multi-consumer channels for EventBus
+parking_lot = "0.12"             # Faster, smaller mutexes/RwLocks
+
+# ANSI escape code parsing for terminal output
+vte = "0.13"                     # VT100/xterm escape sequence parser
+
+[dev-dependencies]
+tempfile = "3.24.0"
+mockall = "0.14"
+proptest = "1.9"
+tokio = { version = "1.49.0", features = ["full"] }
+criterion = "0.8"        # Benchmarking
+serial_test = "3.3"      # Testy wymagające sekwencyjności
+
+# Benchmark configuration
+[[bench]]
+name = "matcher_benchmarks"
+harness = false  # Use criterion's harness instead of default
+
+

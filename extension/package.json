@@ -1,0 +1,20 @@
+{
+  "name": "gluon-extension-tests",
+  "version": "0.2.2",
+  "description": "Tests for Gluon Extension",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=tests/unit",
+    "test:watcher": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=\"tests/unit/(web-recorder|background-watcher)\""
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/chrome": "^0.0.268",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jest-chrome": "^0.8.0"
+  }
+}

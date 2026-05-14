@@ -1,0 +1,180 @@
+feat: Migrate Extension V3 to Thin Client (Rust SSOT)
+
+## 🎯 Migration Overview
+
+Migrated Extension V3 Workflow Manager from Fat Client (2838 lines) to Thin
+Client (650 lines) architecture, delegating all business logic to Rust backend.
+
+## ✅ Changes Made
+
+### Phase 1: Backend (Rust SSOT) - COMPLETED
+- Extended agent_workflow.rs with Message, Agent fields, AgentStatus
+- Created llm_inference.rs (415 lines) - LLM client for OpenAI/Claude/Custom
+- Created workflow_execution.rs (279 lines) - Execution engine with smart routing
+- Created debounced_save.rs (155 lines) - 2-second delayed persistence
+- Added 10 new Tauri commands for presets, configs, and execution
+- Registered all commands in main.rs
+
+### Phase 2: Extension V3 Migration - COMPLETED
+
+#### 2.1 Background.js Update
+- Added universal `workflow_command` handler (lines 1638-1673)
+  - Routes all workflow-manager-v2.js commands to Rust backend
+  - 30-second timeout for async operations
+  - Stores sendResponse callback for response routing
+
+- Added 13+ response handlers in ws.onmessage (lines 664-726)
+  - Preset operations (5 commands)
+  - Saved config operations (4 commands)
+  - Execution operations (4 commands)
+  - Real-time events (workflow_state_sync, workflow_route_message)
+
+#### 2.2 Workflow Manager Replacement
+- Backup: workflow-manager.js → workflow-manager-v1-backup.js (116KB)
+- Replace: workflow-manager-v2.js → workflow-manager.js (23KB)
+- Reduction: **77%** (2838 lines → 650 lines)
+
+#### 2.3 Preset Manager Migration
+- Updated agent-preset-selector.js to use Rust backend
+  - Removed import of preset-manager.js
+  - Added loadPresets() method - loads from Rust API
+  - Implemented local filtering/search methods
+  - Favorites stored in localStorage
+  - Async show() - loads presets before display
+
+### 📊 Code Reduction
+
+| Component | V1 Lines | V2 Lines | Reduction |
+|-----------|----------|----------|-----------|
+| Workflow Manager | 2838 | 650 | **-77%** |
+| Local state management | ~100 | ~20 | **-80%** |
+| CRUD operations | ~300 | ~150 | **-50%** |
+| Routing (parseGCodeMessage) | ~150 | ~10 | **-93%** |
+| Workflow tabs | ~200 | ~50 | **-75%** |
+
+## 🗑️ Removed Features
+
+1. **Local Graph State** (~100 lines)
+   - Old: `this.graph` - mutable local state
+   - New: `this.cachedGraph` - read-only cache from Rust
+
+2. **G-code Routing Parser** (~150 lines)
+   - Old: `parseGCodeMessage()` - complex JS parsing
+   - New: Rust smart router with self-healing JSON parser
+
+3. **Preset Manager Dependency** (~20 lines + entire file)
+   - Old: Hardcoded JS presets in preset-manager.js
+   - New: Rust preset library as SSOT (20+ agents, 8 connections, 10+ workflows)
+
+4. **localStorage Workflow Tabs** (~200 lines)
+   - Old: Manual JSON serialization to localStorage
+   - New: Rust SavedWorkflowConfig with DebouncedSave
+
+5. **Manual Graph Refresh** (~50 lines)
+   - Old: Manual `renderWorkflow()` on every change
+   - New: Automatic WebSocket real-time sync
+
+## ✨ New Features
+
+1. **WebSocket Real-time Sync** (~50 lines)
+   - Automatic state sync across all extension windows
+   - `workflow-state-sync` event from Rust backend
+   - Routing notifications (`workflow-route-message`)
+
+2. **Unified sendToBackground() API** (~30 lines)
+   - Single method for all Rust communication
+   - Automatic error handling and timeouts
+   - Promise-based async responses
+
+3. **Preset Operations** (~50 lines)
+   - Load 20+ agent presets from Rust
+   - Load 8+ connection presets
+   - Load 10+ workflow presets
+   - Create agent from preset
+   - Create entire workflow from preset
+
+4. **LLM Execution** (Rust backend)
+   - Execute agent with LLM (OpenAI, Claude, Custom)
+   - Smart routing with dynamic JSON schema
+   - Self-healing JSON parser (max 3 retries)
+   - Agent status tracking (Idle → Working → Success/Failed)
+
+## 📚 Documentation
+
+- WORKFLOW_MIGRATION_GUIDE.md - Complete API documentation (600+ lines)
+- WORKFLOW_MIGRATION_V1_TO_V2.md - Detailed comparison and migration steps
+- MIGRATION_CHECKLIST.md - Comprehensive testing checklist
+- TESTING_GUIDE.md - Step-by-step testing instructions
+
+## 🧪 Testing Status
+
+- ⏳ Phase 1: Backend Preparation - **COMPLETED** ✅
+- ⏳ Phase 2: Extension Migration (Steps 2.1-2.3) - **COMPLETED** ✅
+- ⏳ Phase 2: Testing (Steps 2.4-2.8) - **PENDING** 🔄
+- ⏳ Phase 3: Desktop App Review - **PENDING** ⏳
+- ⏳ Phase 4: Final Testing - **PENDING** ⏳
+- ⏳ Phase 5: Cleanup & Docs - **PENDING** ⏳
+
+## 🎉 Benefits
+
+1. **77% less code** to maintain (2838 → 650 lines)
+2. **Automatic real-time sync** via WebSocket
+3. **No localStorage race conditions**
+4. **Type-safe backend** in Rust
+5. **Self-healing JSON parsing** with retries
+6. **Preset library as SSOT** (20+ agents, 8 connections, 10+ workflows)
+7. **LLM execution** with smart routing
+8. **DebouncedSave** - 2-second delay prevents excessive disk I/O
+
+## ⚠️ Breaking Changes
+
+None - V2 maintains same public API as V1:
+```javascript
+// ✅ All these still work
+workflowManager.addAgent(name, wrapper, type);
+workflowManager.removeAgent(id);
+workflowManager.addConnection(fromId, toId);
+
+// ✅ New methods available
+workflowManager.createAgentFromPreset(presetId);
+workflowManager.saveWorkflowConfig(id, name);
+```
+
+## 🚀 Next Steps
+
+1. Load Extension in Chrome/Edge
+2. Run manual tests from TESTING_GUIDE.md
+3. Verify WebSocket connection
+4. Test preset loading (20+ agents)
+5. Test CRUD operations (add/remove agent, connections)
+6. Test real-time sync (2 browser windows)
+7. (Optional) Test LLM execution with API key
+8. Delete workflow-manager-v1-backup.js after verification
+9. Delete preset-manager.js (no longer used)
+
+## 🔗 Related Files
+
+### Modified
+- extension/src/background/background.js
+- extension/src/features/workflows/workflow-manager.js (replaced with V2)
+- extension/src/sidebar/components/agent-preset-selector.js
+
+### Created
+- extension/WORKFLOW_MIGRATION_GUIDE.md
+- extension/WORKFLOW_MIGRATION_V1_TO_V2.md
+- extension/MIGRATION_CHECKLIST.md
+- extension/TESTING_GUIDE.md
+- extension/COMMIT_MESSAGE.txt
+- gluon-desktop/src-tauri/src/workflow/llm_inference.rs
+- gluon-desktop/src-tauri/src/workflow/workflow_execution.rs
+- gluon-desktop/src-tauri/src/workflow/debounced_save.rs
+
+### Backup (can be deleted after verification)
+- extension/src/features/workflows/workflow-manager-v1-backup.js
+
+### Deprecated (can be deleted)
+- extension/src/features/prompts/preset-manager.js
+
+---
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>

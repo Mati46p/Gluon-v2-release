@@ -1,0 +1,110 @@
+{
+  "workflow_name": "Test: Browser Research with Sniffer",
+  "description": "Integration test for graph execution with CDP Browser Sniffer",
+  "version": "1.0",
+  "graph": {
+    "entry_node": "navigator_node",
+    "nodes": [
+      {
+        "id": "navigator_node",
+        "name": "Web Navigator",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Navigate to {{target_url}} and analyze the page content. Look for API endpoints and network requests.",
+          "tools": ["browser_navigate", "browser_get_network_logs"],
+          "max_iterations": 3
+        }
+      },
+      {
+        "id": "analyzer_node",
+        "name": "Network Analyzer",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Analyze the captured network logs: {{network_logs}}. Identify all API endpoints and their request methods.",
+          "max_iterations": 2
+        }
+      },
+      {
+        "id": "decision_node",
+        "name": "Check Results",
+        "type": "Logic",
+        "config": {
+          "logic_type": "If",
+          "condition": "api_endpoints_found == true"
+        }
+      },
+      {
+        "id": "success_node",
+        "name": "Success",
+        "type": "Action",
+        "config": {
+          "action": "log",
+          "message": "API endpoints successfully captured"
+        }
+      },
+      {
+        "id": "retry_node",
+        "name": "Retry",
+        "type": "Action",
+        "config": {
+          "action": "log",
+          "message": "No API endpoints found, workflow will retry"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "navigator_node",
+        "to": "analyzer_node",
+        "type": "Default"
+      },
+      {
+        "from": "analyzer_node",
+        "to": "decision_node",
+        "type": "Default"
+      },
+      {
+        "from": "decision_node",
+        "to": "success_node",
+        "type": "Conditional",
+        "condition": "api_endpoints_found == true"
+      },
+      {
+        "from": "decision_node",
+        "to": "retry_node",
+        "type": "Conditional",
+        "condition": "api_endpoints_found == false"
+      }
+    ]
+  },
+  "blackboard_init": {
+    "target_url": "https://jsonplaceholder.typicode.com",
+    "network_logs": [],
+    "api_endpoints_found": false,
+    "endpoints": []
+  },
+  "browser_config": {
+    "mode": "parasitic",
+    "debugging_port": 9222,
+    "sniffer_enabled": true,
+    "sniffer_config": {
+      "capture_network": true,
+      "capture_console": true,
+      "ignore_tracking_pixels": true,
+      "ignore_common_cdn": true
+    }
+  },
+  "budget": {
+    "limit_cents": 150
+  },
+  "test_expectations": {
+    "should_complete": true,
+    "max_execution_time_seconds": 90,
+    "expected_blackboard_keys": ["target_url", "network_logs", "api_endpoints_found", "endpoints"],
+    "expected_tool_calls": ["browser_navigate", "browser_get_network_logs"],
+    "sniffer_events_expected": true,
+    "min_network_events": 1
+  }
+}

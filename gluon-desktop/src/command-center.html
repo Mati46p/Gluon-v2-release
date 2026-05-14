@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Center - Gluon v3</title>
+
+    <!-- React and React Flow CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12/dist/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@xyflow/react@12/dist/umd/index.min.js"></script>
+
+    <!-- xterm.js Terminal CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0a0e1a;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        /* Grid Layout - Mission Control Style */
+        .command-center {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 60px 1fr 300px;
+            height: 100vh;
+            gap: 2px;
+            background: #000;
+        }
+
+        /* Header - Status Bar */
+        .header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%);
+            border-bottom: 2px solid #4a5568;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #00d9ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #48bb78;
+            box-shadow: 0 0 10px #48bb78;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3182ce;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Graph Visualization Panel */
+        .graph-panel {
+            background: #151923;
+            border: 1px solid #2d3748;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #718096;
+            z-index: 10;
+        }
+
+        #graph-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* State Inspector Panel */
+        .state-panel {
+            background: #151923;
+            border: 1px solid #2d3748;
+            overflow-y: auto;
+            padding: 40px 20px 20px;
+        }
+
+        .state-item {
+            background: #1a202c;
+            border-left: 3px solid #4299e1;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .state-item-key {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-bottom: 4px;
+        }
+
+        .state-item-value {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #e0e0e0;
+        }
+
+        /* Variable Tree View */
+        .variable-tree {
+            margin-left: 0;
+        }
+
+        .variable-item {
+            background: #1a202c;
+            border-left: 3px solid #4299e1;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .variable-item.nested {
+            margin-left: 20px;
+            border-left-color: #9f7aea;
+        }
+
+        .variable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .variable-key {
+            font-size: 13px;
+            color: #00d9ff;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .variable-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .variable-type.string { background: #48bb78; color: #fff; }
+        .variable-type.number { background: #4299e1; color: #fff; }
+        .variable-type.boolean { background: #9f7aea; color: #fff; }
+        .variable-type.array { background: #f6ad55; color: #fff; }
+        .variable-type.object { background: #ed8936; color: #fff; }
+        .variable-type.null { background: #718096; color: #fff; }
+
+        .variable-value {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #e0e0e0;
+            margin-top: 6px;
+            padding: 8px;
+            background: #0f1419;
+            border-radius: 3px;
+            word-break: break-all;
+        }
+
+        .variable-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-edit {
+            padding: 4px 10px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-edit:hover {
+            background: #3182ce;
+        }
+
+        .btn-expand {
+            padding: 4px 10px;
+            background: #9f7aea;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-expand:hover {
+            background: #805ad5;
+        }
+
+        /* Modal Dialog */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2d3748;
+            padding-bottom: 12px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #2d3748;
+            color: #e0e0e0;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: #a0aec0;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            background: #0f1419;
+            border: 1px solid #2d3748;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-error {
+            color: #fc8181;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 16px;
+            border-top: 1px solid #2d3748;
+        }
+
+        .btn-cancel {
+            padding: 8px 16px;
+            background: #2d3748;
+            color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #4a5568;
+        }
+
+        .btn-save {
+            padding: 8px 16px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #38a169;
+        }
+
+        .btn-save:disabled {
+            background: #2d3748;
+            color: #718096;
+            cursor: not-allowed;
+        }
+
+        /* Confirmation Dialog */
+        .confirm-dialog {
+            background: #2d1b1e;
+            border: 2px solid #f6ad55;
+        }
+
+        .confirm-message {
+            font-size: 14px;
+            color: #e0e0e0;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .confirm-warning {
+            background: #2d1b1e;
+            border-left: 3px solid #f6ad55;
+            padding: 10px;
+            margin: 12px 0;
+            border-radius: 4px;
+        }
+
+        .confirm-warning-text {
+            font-size: 12px;
+            color: #f6ad55;
+            margin: 0;
+        }
+
+        .diff-preview {
+            background: #0f1419;
+            border: 1px solid #2d3748;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 12px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .diff-old {
+            color: #fc8181;
+            text-decoration: line-through;
+        }
+
+        .diff-new {
+            color: #68d391;
+        }
+
+        /* Terminal Panel */
+        .terminal-panel {
+            grid-column: 1 / -1;
+            background: #0d1117;
+            border: 1px solid #2d3748;
+            position: relative;
+        }
+
+        #terminal {
+            width: 100%;
+            height: 100%;
+            padding: 40px 10px 10px;
+        }
+
+        /* Logs Panel */
+        .logs-panel {
+            background: #151923;
+            border: 1px solid #2d3748;
+            overflow-y: auto;
+            padding: 40px 20px 20px;
+        }
+
+        .log-entry {
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            border-left: 3px solid transparent;
+        }
+
+        .log-entry.info {
+            border-left-color: #4299e1;
+            background: rgba(66, 153, 225, 0.1);
+        }
+
+        .log-entry.warn {
+            border-left-color: #ed8936;
+            background: rgba(237, 137, 54, 0.1);
+        }
+
+        .log-entry.error {
+            border-left-color: #f56565;
+            background: rgba(245, 101, 101, 0.1);
+        }
+
+        .log-timestamp {
+            color: #718096;
+            margin-right: 10px;
+        }
+
+        /* Budget Indicator */
+        .budget-bar {
+            flex: 1;
+            max-width: 300px;
+            height: 8px;
+            background: #2d3748;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .budget-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78 0%, #ed8936 70%, #f56565 100%);
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .budget-text {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-left: 10px;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a202c;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+
+        /* React Flow Graph Node Animations */
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(66, 153, 225, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(66, 153, 225, 0.8);
+            }
+        }
+
+        /* React Flow custom styles */
+        .react-flow__node {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .react-flow__controls-button {
+            background: #2d3748 !important;
+            border: 1px solid #4a5568 !important;
+            color: #e0e0e0 !important;
+        }
+
+        .react-flow__controls-button:hover {
+            background: #4a5568 !important;
+        }
+
+        /* Terminal Tabs */
+        .terminal-tab {
+            padding: 6px 12px;
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            font-size: 12px;
+            color: #a0aec0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .terminal-tab:hover {
+            background: #2d3748;
+            color: #e0e0e0;
+        }
+
+        .terminal-tab.active {
+            background: #000000;
+            color: #00d9ff;
+            border-bottom-color: #000000;
+        }
+
+        .terminal-tab .close-btn {
+            color: #e53e3e;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 0 4px;
+            border-radius: 2px;
+            transition: background 0.2s;
+        }
+
+        .terminal-tab .close-btn:hover {
+            background: rgba(229, 62, 62, 0.2);
+        }
+
+        /* xterm.js overrides */
+        .xterm {
+            padding: 10px;
+            height: 100%;
+        }
+
+        .xterm .xterm-viewport {
+            overflow-y: scroll;
+        }
+
+        /* Agent Thoughts Cards */
+        .thought-card {
+            background: #1a202c;
+            border-left: 4px solid;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .thought-card:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .thought-card.planning {
+            border-left-color: #4299e1; /* Blue */
+        }
+
+        .thought-card.decision {
+            border-left-color: #9f7aea; /* Purple */
+        }
+
+        .thought-card.observation {
+            border-left-color: #48bb78; /* Green */
+        }
+
+        .thought-card.critique {
+            border-left-color: #f6ad55; /* Orange */
+        }
+
+        .thought-card.summary {
+            border-left-color: #00d9ff; /* Cyan */
+        }
+
+        .thought-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .thought-type {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .thought-type.planning { color: #4299e1; }
+        .thought-type.decision { color: #9f7aea; }
+        .thought-type.observation { color: #48bb78; }
+        .thought-type.critique { color: #f6ad55; }
+        .thought-type.summary { color: #00d9ff; }
+
+        .thought-timestamp {
+            font-size: 10px;
+            color: #718096;
+        }
+
+        .thought-content {
+            color: #e0e0e0;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .thought-agent {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <div class="command-center">
+        <!-- Header / Status Bar -->
+        <div class="header">
+            <h1>
+                <div class="status-indicator"></div>
+                COMMAND CENTER
+            </h1>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="budget-bar">
+                        <div class="budget-fill" id="budgetFill"></div>
+                    </div>
+                    <span class="budget-text" id="budgetText">$0.00 / $100.00</span>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="pauseBtn">⏸ Pause</button>
+                    <button class="btn btn-primary" id="resumeBtn" disabled>▶ Resume</button>
+                    <button class="btn btn-danger" id="stopBtn">⏹ Stop</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph Visualization -->
+        <div class="graph-panel">
+            <div class="panel-title">🧠 Execution Graph</div>
+            <div id="graph-canvas" style="width: 100%; height: calc(100% - 40px); background: #1a1f2e;">
+                <!-- React Flow will be mounted here -->
+            </div>
+        </div>
+
+        <!-- State Inspector -->
+        <div class="state-panel">
+            <div class="panel-title">🔍 State Inspector (Blackboard)</div>
+            <div id="stateContent">
+                <!-- State items will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="terminal-panel">
+            <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>💻 Virtual Terminal</span>
+                <button class="btn btn-primary" id="newTerminalBtn" style="padding: 4px 12px; font-size: 12px;">
+                    + New Session
+                </button>
+            </div>
+            <div id="terminal-tabs" style="display: flex; gap: 5px; padding: 5px 10px; background: #0a0e1a; border-bottom: 1px solid #2d3748; overflow-x: auto;">
+                <!-- Terminal tabs will be added here dynamically -->
+            </div>
+            <div id="terminal-container" style="width: 100%; height: calc(100% - 80px); background: #000000;">
+                <!-- xterm.js instances will be mounted here -->
+            </div>
+        </div>
+
+        <!-- Logs Panel - Split: System Logs + Agent Thoughts -->
+        <div class="logs-panel" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #000;">
+            <!-- System Logs -->
+            <div style="background: #0f1419; display: flex; flex-direction: column;">
+                <div class="panel-title">📜 System Logs</div>
+                <div id="logsContent" style="flex: 1; overflow-y: auto;">
+                    <!-- Log entries will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Agent Thoughts -->
+            <div style="background: #0f1419; display: flex; flex-direction: column;">
+                <div class="panel-title">💭 Agent Thoughts</div>
+                <div id="thoughtsContent" style="flex: 1; overflow-y: auto; padding: 10px;">
+                    <!-- Thought entries will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Tauri API
+        const { invoke } = window.__TAURI__.core;
+        const { listen } = window.__TAURI__.event;
+
+        let isPaused = false;
+        let sessionId = null;
+        let reactFlowInstance = null;
+
+        // ============================================================================
+        // Graph Visualization (React Flow)
+        // ============================================================================
+
+        const { ReactFlow, Controls, MiniMap, Background, Position, MarkerType, Handle } = window.ReactFlow;
+        const { useNodesState, useEdgesState, memo } = window.ReactFlow;
+
+        // ============================================================================
+        // Custom Node Components
+        // ============================================================================
+
+        // Agent Node - Circular avatar with model name
+        const AgentNode = memo(({ data, isConnectable }) => {
+            return React.createElement('div', {
+                style: {
+                    padding: '16px',
+                    borderRadius: '50%',
+                    width: '80px',
+                    height: '80px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: data.status === 'Running' ?
+                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
+                        data.status === 'Success' ?
+                        'linear-gradient(135deg, #48bb78 0%, #38a169 100%)' :
+                        data.status === 'Error' ?
+                        'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)' :
+                        'linear-gradient(135deg, #4a5568 0%, #2d3748 100%)',
+                    border: `3px solid ${data.status === 'Running' ? '#4299e1' : '#00d9ff'}`,
+                    boxShadow: data.status === 'Running' ?
+                        '0 0 20px rgba(66, 153, 225, 0.6)' :
+                        '0 4px 12px rgba(0, 0, 0, 0.3)',
+                    color: '#ffffff',
+                    fontSize: '32px',
+                    position: 'relative'
+                }
+            }, [
+                React.createElement(Handle, {
+                    type: 'target',
+                    position: Position.Left,
+                    isConnectable,
+                    style: { background: '#00d9ff', border: 'none', width: '10px', height: '10px' }
+                }),
+                React.createElement('div', {
+                    style: { fontSize: '32px', marginBottom: '4px' }
+                }, '🤖'),
+                React.createElement('div', {
+                    style: {
+                        position: 'absolute',
+                        bottom: '-25px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        whiteSpace: 'nowrap',
+                        color: '#e0e0e0',
+                        textAlign: 'center'
+                    }
+                }, data.label),
+                React.createElement(Handle, {
+                    type: 'source',
+                    position: Position.Right,
+                    isConnectable,
+                    style: { background: '#00d9ff', border: 'none', width: '10px', height: '10px' }
+                })
+            ]);
+        });
+
+        // Logic Node - Diamond shape for conditional logic
+        const LogicNode = memo(({ data, isConnectable }) => {
+            return React.createElement('div', {
+                style: {
+                    width: '100px',
+                    height: '100px',
+                    background: data.status === 'Running' ?
+                        'linear-gradient(135deg, #f6ad55 0%, #ed8936 100%)' :
+                        'linear-gradient(135deg, #4a5568 0%, #2d3748 100%)',
+                    transform: 'rotate(45deg)',
+                    border: `3px solid ${data.status === 'Running' ? '#4299e1' : '#f6ad55'}`,
+                    boxShadow: data.status === 'Running' ?
+                        '0 0 20px rgba(246, 173, 85, 0.6)' :
+                        '0 4px 12px rgba(0, 0, 0, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative'
+                }
+            }, [
+                React.createElement(Handle, {
+                    type: 'target',
+                    position: Position.Left,
+                    isConnectable,
+                    style: {
+                        background: '#f6ad55',
+                        border: 'none',
+                        width: '10px',
+                        height: '10px',
+                        left: '-5px',
+                        top: '50%',
+                        transform: 'translateY(-50%)'
+                    }
+                }),
+                React.createElement('div', {
+                    style: {
+                        transform: 'rotate(-45deg)',
+                        fontSize: '28px',
+                        color: '#ffffff'
+                    }
+                }, data.condition ? '?' : '⚡'),
+                React.createElement('div', {
+                    style: {
+                        position: 'absolute',
+                        bottom: '-40px',
+                        left: '50%',
+                        transform: 'translateX(-50%) rotate(-45deg)',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        whiteSpace: 'nowrap',
+                        color: '#f6ad55',
+                        textAlign: 'center',
+                        width: '120px'
+                    }
+                }, data.label),
+                React.createElement(Handle, {
+                    type: 'source',
+                    position: Position.Right,
+                    isConnectable,
+                    style: {
+                        background: '#f6ad55',
+                        border: 'none',
+                        width: '10px',
+                        height: '10px',
+                        right: '-5px',
+                        top: '50%',
+                        transform: 'translateY(-50%)'
+                    }
+                })
+            ]);
+        });
+
+        // Action Node - Terminal-style rectangular box
+        const ActionNode = memo(({ data, isConnectable }) => {
+            return React.createElement('div', {
+                style: {
+                    padding: '12px 20px',
+                    borderRadius: '6px',
+                    background: data.status === 'Running' ?
+                        'linear-gradient(135deg, #68d391 0%, #48bb78 100%)' :
+                        'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)',
+                    border: `2px solid ${data.status === 'Running' ? '#4299e1' : '#68d391'}`,
+                    boxShadow: data.status === 'Running' ?
+                        '0 0 20px rgba(104, 211, 145, 0.6)' :
+                        '0 4px 12px rgba(0, 0, 0, 0.3)',
+                    minWidth: '140px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    position: 'relative'
+                }
+            }, [
+                React.createElement(Handle, {
+                    type: 'target',
+                    position: Position.Left,
+                    isConnectable,
+                    style: { background: '#68d391', border: 'none', width: '10px', height: '10px' }
+                }),
+                React.createElement('div', {
+                    style: { fontSize: '20px' }
+                }, '⚙️'),
+                React.createElement('div', {
+                    style: {
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        color: '#ffffff'
+                    }
+                }, data.label),
+                React.createElement(Handle, {
+                    type: 'source',
+                    position: Position.Right,
+                    isConnectable,
+                    style: { background: '#68d391', border: 'none', width: '10px', height: '10px' }
+                })
+            ]);
+        });
+
+        // Custom node styles based on status
+        function getNodeStyle(node) {
+            const baseStyle = {
+                padding: '12px 16px',
+                borderRadius: '8px',
+                border: '2px solid',
+                fontSize: '13px',
+                fontWeight: '500',
+                minWidth: '120px',
+                textAlign: 'center'
+            };
+
+            // Color coding based on node type and status
+            let style = { ...baseStyle };
+
+            // Node type styling
+            if (node.node_type === 'Agent') {
+                style.background = '#2d3748';
+                style.borderColor = '#00d9ff';
+                style.color = '#00d9ff';
+            } else if (node.node_type === 'Logic') {
+                style.background = '#1a202c';
+                style.borderColor = '#f6ad55';
+                style.color = '#f6ad55';
+            } else if (node.node_type === 'Action') {
+                style.background = '#2d3748';
+                style.borderColor = '#68d391';
+                style.color = '#68d391';
+            }
+
+            // Status overlay
+            if (node.status === 'Running') {
+                style.borderColor = '#4299e1';
+                style.boxShadow = '0 0 20px rgba(66, 153, 225, 0.5)';
+                style.animation = 'pulse 2s ease-in-out infinite';
+            } else if (node.status === 'Success') {
+                style.borderColor = '#48bb78';
+                style.background = 'rgba(72, 187, 120, 0.1)';
+            } else if (node.status === 'Error') {
+                style.borderColor = '#f56565';
+                style.background = 'rgba(245, 101, 101, 0.1)';
+            } else if (node.status === 'Pending') {
+                style.opacity = '0.6';
+            }
+
+            return style;
+        }
+
+        // Custom edge styling
+        function getEdgeStyle(edge) {
+            const baseStyle = {
+                stroke: '#4a5568',
+                strokeWidth: 2
+            };
+
+            if (edge.active) {
+                baseStyle.stroke = '#4299e1';
+                baseStyle.strokeWidth = 3;
+                baseStyle.animated = true;
+            }
+
+            if (edge.condition) {
+                baseStyle.label = edge.condition;
+                baseStyle.labelStyle = { fill: '#a0aec0', fontSize: '11px' };
+            }
+
+            return baseStyle;
+        }
+
+        // Transform backend graph state to React Flow format
+        function transformGraphState(graphState) {
+            if (!graphState || !graphState.nodes) {
+                return { nodes: [], edges: [] };
+            }
+
+            // Transform nodes from backend NodeSnapshot to React Flow format
+            const nodes = graphState.nodes.map((node, index) => {
+                // Backend NodeSnapshot structure:
+                // { id, name, node_type, status, progress, metadata }
+
+                // Map backend node_type to React Flow custom node type
+                let nodeType = 'default';
+                if (node.node_type === 'Agent') {
+                    nodeType = 'agentNode';
+                } else if (node.node_type === 'Logic') {
+                    nodeType = 'logicNode';
+                } else if (node.node_type === 'Action') {
+                    nodeType = 'actionNode';
+                }
+
+                const reactFlowNode = {
+                    id: node.id,
+                    type: nodeType,
+                    data: {
+                        label: node.name || node.id,
+                        status: node.status,
+                        progress: node.progress,
+                        condition: node.metadata && node.metadata.condition
+                    },
+                    // Use metadata.position if available, otherwise auto-layout
+                    position: (node.metadata && node.metadata.position) ?
+                        node.metadata.position :
+                        { x: 100 + (index % 3) * 250, y: 100 + Math.floor(index / 3) * 180 },
+                };
+                return reactFlowNode;
+            });
+
+            // Transform edges from backend EdgeSnapshot to React Flow format
+            const edges = graphState.edges.map((edge) => {
+                // Backend EdgeSnapshot structure:
+                // { from, to, edge_type, active }
+                return {
+                    id: `${edge.from}-${edge.to}`,
+                    source: edge.from,
+                    target: edge.to,
+                    ...getEdgeStyle({
+                        active: edge.active,
+                        condition: edge.edge_type !== 'Default' ? edge.edge_type : null
+                    }),
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                        color: edge.active ? '#4299e1' : '#4a5568'
+                    },
+                };
+            }));
+
+            return { nodes, edges };
+        }
+
+        // React Flow component
+        function GraphVisualization() {
+            const [nodes, setNodes] = React.useState([]);
+            const [edges, setEdges] = React.useState([]);
+            const [selectedNode, setSelectedNode] = React.useState(null);
+
+            // Define custom node types
+            const nodeTypes = React.useMemo(() => ({
+                agentNode: AgentNode,
+                logicNode: LogicNode,
+                actionNode: ActionNode,
+            }), []);
+
+            // Handle node click - show details in state inspector
+            const onNodeClick = React.useCallback((event, node) => {
+                setSelectedNode(node);
+                addLog('info', `Selected node: ${node.data.label} (${node.id})`);
+
+                // Update state inspector with node details
+                const container = document.getElementById('stateContent');
+                container.innerHTML = `
+                    <div class="state-item">
+                        <div class="state-item-key">node_id</div>
+                        <div class="state-item-value">${node.id}</div>
+                    </div>
+                    <div class="state-item">
+                        <div class="state-item-key">node_name</div>
+                        <div class="state-item-value">${node.data.label}</div>
+                    </div>
+                    <div class="state-item">
+                        <div class="state-item-key">node_type</div>
+                        <div class="state-item-value">${node.type}</div>
+                    </div>
+                    <div class="state-item">
+                        <div class="state-item-key">status</div>
+                        <div class="state-item-value">${node.data.status || 'Pending'}</div>
+                    </div>
+                    ${node.data.progress ? `
+                    <div class="state-item">
+                        <div class="state-item-key">progress</div>
+                        <div class="state-item-value">${(node.data.progress * 100).toFixed(1)}%</div>
+                    </div>
+                    ` : ''}
+                `;
+            }, []);
+
+            // Handle pane click - deselect node
+            const onPaneClick = React.useCallback(() => {
+                setSelectedNode(null);
+            }, []);
+
+            // Fetch and update graph state
+            const updateGraph = async () => {
+                try {
+                    const graphState = await invoke('ui_get_graph_state');
+                    const { nodes: newNodes, edges: newEdges } = transformGraphState(graphState);
+                    setNodes(newNodes);
+                    setEdges(newEdges);
+                } catch (err) {
+                    console.error('Failed to fetch graph state:', err);
+                    // Show placeholder for now
+                    setNodes([
+                        {
+                            id: 'placeholder',
+                            type: 'default',
+                            data: { label: '📊 No graph loaded', status: 'Pending' },
+                            position: { x: 250, y: 150 },
+                            style: {
+                                padding: '20px',
+                                borderRadius: '8px',
+                                background: '#2d3748',
+                                border: '2px dashed #4a5568',
+                                color: '#a0aec0',
+                                fontSize: '14px'
+                            }
+                        }
+                    ]);
+                }
+            };
+
+            // Initialize and register callback for event-driven updates
+            React.useEffect(() => {
+                updateGraph();
+
+                // Register callback so event listeners can trigger updates
+                setGraphUpdateCallback(updateGraph);
+
+                // Cleanup on unmount
+                return () => setGraphUpdateCallback(null);
+            }, []);
+
+            return React.createElement(ReactFlow, {
+                nodes,
+                edges,
+                nodeTypes,  // Pass custom node types
+                onNodeClick,
+                onPaneClick,
+                fitView: true,
+                fitViewOptions: { padding: 0.2 },
+                attributionPosition: 'bottom-left',
+                style: { background: '#1a1f2e' },
+                defaultEdgeOptions: {
+                    animated: false,
+                    style: { stroke: '#4a5568', strokeWidth: 2 }
+                },
+                nodesDraggable: true,
+                nodesConnectable: false,
+                elementsSelectable: true,
+                children: [
+                    React.createElement(Controls, {
+                        style: { button: { background: '#2d3748', border: '1px solid #4a5568', color: '#e0e0e0' } }
+                    }),
+                    React.createElement(MiniMap, {
+                        nodeColor: (node) => {
+                            // Color minimap nodes by type
+                            if (node.type === 'agentNode') return '#00d9ff';
+                            if (node.type === 'logicNode') return '#f6ad55';
+                            if (node.type === 'actionNode') return '#68d391';
+                            return '#4a5568';
+                        },
+                        maskColor: 'rgba(0, 0, 0, 0.6)',
+                        style: { background: '#0a0e1a', border: '1px solid #4a5568' }
+                    }),
+                    React.createElement(Background, { color: '#2d3748', gap: 20, size: 1 })
+                ]
+            });
+        }
+
+        // Mount React Flow
+        function mountGraphVisualization() {
+            const container = document.getElementById('graph-canvas');
+            if (container && window.React && window.ReactDOM && window.ReactFlow) {
+                const root = ReactDOM.createRoot(container);
+                root.render(React.createElement(GraphVisualization));
+            } else {
+                console.error('React Flow dependencies not loaded');
+            }
+        }
+
+        // ============================================================================
+        // Event Bus - Real-Time Updates (replaces polling)
+        // ============================================================================
+
+        let graphUpdateCallback = null;
+        let graphUpdateInProgress = false;
+
+        // Set callback for graph updates (called from React component)
+        function setGraphUpdateCallback(callback) {
+            graphUpdateCallback = callback;
+        }
+
+        // Subscribe to NodeStateChanged events
+        listen('NodeStateChanged', async (event) => {
+            const { node_id, node_name, status, timestamp } = event.payload;
+            console.log(`Node ${node_name} (${node_id}) changed to ${status}`);
+
+            // Debounce: Skip if update already in progress (prevents race condition)
+            if (graphUpdateInProgress) {
+                console.log('[GraphViz] Update in progress, skipping duplicate request');
+                return;
+            }
+
+            // Trigger graph re-fetch if callback is set
+            if (graphUpdateCallback) {
+                graphUpdateInProgress = true;
+                try {
+                    await graphUpdateCallback();
+                } finally {
+                    graphUpdateInProgress = false;
+                }
+            }
+
+            // Log to system logs
+            addLog('info', `Node ${node_name}: ${status}`);
+        });
+
+        // Subscribe to AgentThought events
+        listen('AgentThought', (event) => {
+            const { agent_id, thought_type, content, timestamp } = event.payload;
+            addThought(agent_id, thought_type, content, timestamp);
+        });
+
+        // Subscribe to SystemLog events
+        listen('SystemLog', (event) => {
+            const { level, source, message, timestamp } = event.payload;
+            addLog(level, `[${source}] ${message}`);
+        });
+
+        // Subscribe to BudgetUpdate events
+        listen('BudgetUpdate', (event) => {
+            const { used_cents, limit_cents, percentage, timestamp } = event.payload;
+            updateBudget({ used_cents, limit_cents, percentage });
+        });
+
+        // Subscribe to DataFlow events (for edge animation)
+        listen('DataFlow', (event) => {
+            const { from_node, to_node, data_type, size_bytes } = event.payload;
+            console.log(`Data flow: ${from_node} → ${to_node} (${data_type}, ${size_bytes} bytes)`);
+            // TODO: Animate edge in graph
+        });
+
+        // Subscribe to ExecutionPaused/Resumed events
+        listen('ExecutionPaused', (event) => {
+            const { reason } = event.payload;
+            addLog('warn', `Execution paused: ${reason}`);
+            isPaused = true;
+            updateControlButtons();
+        });
+
+        listen('ExecutionResumed', (event) => {
+            addLog('info', 'Execution resumed');
+            isPaused = false;
+            updateControlButtons();
+        });
+
+        // Subscribe to CriticalError events
+        listen('CriticalError', (event) => {
+            const { error_type, message, stack_trace } = event.payload;
+            addLog('error', `CRITICAL: ${error_type} - ${message}`);
+            if (stack_trace) {
+                console.error('Stack trace:', stack_trace);
+            }
+        });
+
+        // Helper function to add thought to UI
+        function addThought(agentId, thoughtType, content, timestamp) {
+            const container = document.getElementById('thoughtsContent');
+            const time = new Date(timestamp).toLocaleTimeString();
+
+            const card = document.createElement('div');
+            card.className = `thought-card ${thoughtType.toLowerCase()}`;
+            card.innerHTML = `
+                <div class="thought-header">
+                    <span class="thought-type ${thoughtType.toLowerCase()}">${thoughtType}</span>
+                    <span class="thought-timestamp">${time}</span>
+                </div>
+                <div class="thought-content">${escapeHtml(content)}</div>
+                <div class="thought-agent">🤖 ${agentId}</div>
+            `;
+
+            container.appendChild(card);
+            container.scrollTop = container.scrollHeight;
+
+            // Keep only last 50 thoughts (memory management)
+            if (container.children.length > 50) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        // HTML escape helper
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================================
+        // Virtual Terminal Manager (xterm.js)
+        // ============================================================================
+
+        const { Terminal } = window.Terminal;
+        const { FitAddon } = window.FitAddon;
+
+        class TerminalManager {
+            constructor() {
+                this.terminals = new Map(); // session_id -> { term, fitAddon, element }
+                this.activeSessionId = null;
+                this.unlisteners = new Map(); // session_id -> unlisten function
+            }
+
+            async createSession(workingDir = null) {
+                try {
+                    // Create terminal session via backend
+                    const response = await invoke('ui_create_terminal', {
+                        request: { working_dir: workingDir }
+                    });
+                    const sessionId = response.session_id;
+
+                    // Create xterm.js instance
+                    const term = new Terminal({
+                        cursorBlink: true,
+                        fontSize: 13,
+                        fontFamily: 'Consolas, "Courier New", monospace',
+                        theme: {
+                            background: '#000000',
+                            foreground: '#e0e0e0',
+                            cursor: '#00d9ff',
+                            cursorAccent: '#000000',
+                            selectionBackground: 'rgba(0, 217, 255, 0.3)',
+                            black: '#000000',
+                            red: '#f56565',
+                            green: '#48bb78',
+                            yellow: '#f6ad55',
+                            blue: '#4299e1',
+                            magenta: '#9f7aea',
+                            cyan: '#00d9ff',
+                            white: '#e0e0e0',
+                        },
+                        scrollback: 1000,
+                        allowTransparency: false,
+                    });
+
+                    // Add fit addon for auto-resize
+                    const fitAddon = new FitAddon();
+                    term.loadAddon(fitAddon);
+
+                    // Create terminal element
+                    const element = document.createElement('div');
+                    element.id = `terminal-${sessionId}`;
+                    element.style.width = '100%';
+                    element.style.height = '100%';
+                    element.style.display = 'none';
+                    document.getElementById('terminal-container').appendChild(element);
+
+                    // Open terminal
+                    term.open(element);
+                    fitAddon.fit();
+
+                    // Handle user input
+                    term.onData(async (data) => {
+                        try {
+                            // Convert string to bytes
+                            const encoder = new TextEncoder();
+                            const bytes = Array.from(encoder.encode(data));
+                            await invoke('ui_terminal_write', {
+                                sessionId,
+                                data: bytes
+                            });
+                        } catch (err) {
+                            console.error('Failed to write to terminal:', err);
+                        }
+                    });
+
+                    // Listen for terminal output from backend
+                    const unlisten = await listen(`terminal_output_${sessionId}`, (event) => {
+                        const data = event.payload;
+                        if (data && data.length > 0) {
+                            // Convert bytes to string
+                            const decoder = new TextDecoder();
+                            const text = decoder.decode(new Uint8Array(data));
+                            term.write(text);
+                        }
+                    });
+
+                    // Handle resize
+                    const resizeObserver = new ResizeObserver(() => {
+                        fitAddon.fit();
+                        // Notify backend of new size
+                        invoke('ui_terminal_resize', {
+                            sessionId,
+                            rows: term.rows,
+                            cols: term.cols
+                        }).catch(err => console.error('Failed to resize terminal:', err));
+                    });
+                    resizeObserver.observe(element);
+
+                    // Store terminal data
+                    this.terminals.set(sessionId, {
+                        term,
+                        fitAddon,
+                        element,
+                        resizeObserver
+                    });
+                    this.unlisteners.set(sessionId, unlisten);
+
+                    // Add tab
+                    this.addTab(sessionId);
+
+                    // Switch to new terminal
+                    this.switchTo(sessionId);
+
+                    addLog('info', `Terminal session created: ${sessionId}`);
+                    return sessionId;
+
+                } catch (err) {
+                    addLog('error', `Failed to create terminal: ${err}`);
+                    throw err;
+                }
+            }
+
+            addTab(sessionId) {
+                const tabContainer = document.getElementById('terminal-tabs');
+
+                const tab = document.createElement('div');
+                tab.className = 'terminal-tab';
+                tab.id = `tab-${sessionId}`;
+                tab.innerHTML = `
+                    <span>⌨️ ${sessionId.substring(0, 8)}</span>
+                    <span class="close-btn">×</span>
+                `;
+
+                // Click to switch
+                tab.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('close-btn')) {
+                        this.switchTo(sessionId);
+                    }
+                });
+
+                // Close button
+                tab.querySelector('.close-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.closeSession(sessionId);
+                });
+
+                tabContainer.appendChild(tab);
+            }
+
+            switchTo(sessionId) {
+                // Hide all terminals
+                this.terminals.forEach((data, id) => {
+                    data.element.style.display = 'none';
+                    const tab = document.getElementById(`tab-${id}`);
+                    if (tab) tab.classList.remove('active');
+                });
+
+                // Show selected terminal
+                const terminalData = this.terminals.get(sessionId);
+                if (terminalData) {
+                    terminalData.element.style.display = 'block';
+                    terminalData.fitAddon.fit();
+                    terminalData.term.focus();
+                    this.activeSessionId = sessionId;
+
+                    const tab = document.getElementById(`tab-${sessionId}`);
+                    if (tab) tab.classList.add('active');
+                }
+            }
+
+            async closeSession(sessionId) {
+                try {
+                    // Close backend session
+                    await invoke('ui_terminal_close', { sessionId });
+
+                    // Dispose xterm.js
+                    const terminalData = this.terminals.get(sessionId);
+                    if (terminalData) {
+                        terminalData.term.dispose();
+                        terminalData.resizeObserver.disconnect();
+                        terminalData.element.remove();
+                    }
+
+                    // Unlisten from events
+                    const unlisten = this.unlisteners.get(sessionId);
+                    if (unlisten) {
+                        unlisten();
+                        this.unlisteners.delete(sessionId);
+                    }
+
+                    // Remove tab
+                    const tab = document.getElementById(`tab-${sessionId}`);
+                    if (tab) tab.remove();
+
+                    // Remove from map
+                    this.terminals.delete(sessionId);
+
+                    // Switch to another terminal if this was active
+                    if (this.activeSessionId === sessionId) {
+                        const remainingSessions = Array.from(this.terminals.keys());
+                        if (remainingSessions.length > 0) {
+                            this.switchTo(remainingSessions[0]);
+                        } else {
+                            this.activeSessionId = null;
+                        }
+                    }
+
+                    addLog('info', `Terminal session closed: ${sessionId}`);
+
+                } catch (err) {
+                    addLog('error', `Failed to close terminal: ${err}`);
+                }
+            }
+
+            async executeCommand(command) {
+                if (!this.activeSessionId) {
+                    addLog('warn', 'No active terminal session');
+                    return;
+                }
+
+                try {
+                    // Write command with agent prefix (cyan color)
+                    const terminalData = this.terminals.get(this.activeSessionId);
+                    if (terminalData) {
+                        terminalData.term.write(`\x1b[36m[AGENT]\x1b[0m $ ${command}\r\n`);
+                    }
+
+                    // Execute via backend
+                    await invoke('ui_terminal_execute', {
+                        sessionId: this.activeSessionId,
+                        command: command + '\n'
+                    });
+
+                    addLog('info', `Agent executed: ${command}`);
+                } catch (err) {
+                    addLog('error', `Failed to execute command: ${err}`);
+                }
+            }
+
+            async interrupt() {
+                if (!this.activeSessionId) {
+                    return;
+                }
+
+                try {
+                    await invoke('ui_terminal_interrupt', {
+                        sessionId: this.activeSessionId
+                    });
+                    addLog('info', 'Sent Ctrl+C to terminal');
+                } catch (err) {
+                    addLog('error', `Failed to interrupt: ${err}`);
+                }
+            }
+        }
+
+        // Global terminal manager instance
+        const terminalManager = new TerminalManager();
+
+        // New Terminal Button
+        document.getElementById('newTerminalBtn').addEventListener('click', async () => {
+            try {
+                await terminalManager.createSession();
+            } catch (err) {
+                addLog('error', `Failed to create terminal: ${err}`);
+            }
+        });
+
+        // Auto-create first terminal on load
+        async function initializeTerminal() {
+            try {
+                await terminalManager.createSession();
+            } catch (err) {
+                console.error('Failed to initialize terminal:', err);
+                addLog('error', `❌ Failed to create terminal: ${err}`);
+
+                // Show error placeholder in terminal panel
+                const container = document.getElementById('terminal-container');
+                container.innerHTML = `
+                    <div style="color: #fc8181; padding: 40px; text-align: center; background: #1a1f2e;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <p style="font-size: 16px; margin-bottom: 8px;">Failed to create terminal session</p>
+                        <p style="font-size: 12px; color: #a0aec0; margin-bottom: 20px;">
+                            ${String(err).substring(0, 200)}
+                        </p>
+                        <button class="btn btn-primary" onclick="initializeTerminal()" style="margin-top: 16px;">
+                            🔄 Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Control Buttons
+        document.getElementById('pauseBtn').addEventListener('click', async () => {
+            try {
+                await invoke('ui_pause_execution');
+                isPaused = true;
+                updateControlButtons();
+                addLog('info', 'Execution paused by user');
+            } catch (err) {
+                addLog('error', `Failed to pause: ${err}`);
+            }
+        });
+
+        document.getElementById('resumeBtn').addEventListener('click', async () => {
+            try {
+                await invoke('ui_resume_execution');
+                isPaused = false;
+                updateControlButtons();
+                addLog('info', 'Execution resumed');
+            } catch (err) {
+                addLog('error', `Failed to resume: ${err}`);
+            }
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', async () => {
+            addLog('warn', 'Stop functionality not yet implemented');
+        });
+
+        function updateControlButtons() {
+            document.getElementById('pauseBtn').disabled = isPaused;
+            document.getElementById('resumeBtn').disabled = !isPaused;
+        }
+
+        // State polling (will be replaced with real-time events)
+        async function pollState() {
+            try {
+                const state = await invoke('ui_get_execution_state');
+                updateStatePanel(state);
+                updateBudget(state.budget);
+            } catch (err) {
+                console.error('Failed to poll state:', err);
+            }
+        }
+
+        // =======================
+        // STATE INSPECTOR & GOD MODE
+        // =======================
+
+        // Store current blackboard state for editing
+        let currentBlackboard = {};
+        let editingVariable = null;
+
+        function updateStatePanel(state) {
+            const container = document.getElementById('stateContent');
+
+            // Update current blackboard state
+            currentBlackboard = state.blackboard.variables.reduce((acc, item) => {
+                acc[item.key] = item.value;
+                return acc;
+            }, {});
+
+            // Render variable tree
+            container.innerHTML = renderVariableTree(currentBlackboard);
+        }
+
+        function renderVariableTree(variables, depth = 0) {
+            if (Object.keys(variables).length === 0) {
+                return '<div style="color: #718096; padding: 20px; text-align: center;">No variables in Blackboard</div>';
+            }
+
+            let html = '<div class="variable-tree">';
+
+            for (const [key, value] of Object.entries(variables)) {
+                const type = detectType(value);
+                const isExpandable = type === 'object' || type === 'array';
+                const nestedClass = depth > 0 ? 'nested' : '';
+
+                html += `
+                    <div class="variable-item ${nestedClass}">
+                        <div class="variable-header">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="variable-key">${escapeHtml(key)}</span>
+                                <span class="variable-type ${type}">${type}</span>
+                            </div>
+                            <div class="variable-actions">
+                                ${isExpandable ? `<button class="btn-expand" onclick="toggleExpand('${escapeHtml(key)}')">Expand</button>` : ''}
+                                <button class="btn-edit" onclick="editVariable('${escapeHtml(key)}')">Edit</button>
+                            </div>
+                        </div>
+                        <div class="variable-value" id="value-${escapeHtml(key)}">
+                            ${formatValue(value, type)}
+                        </div>
+                        ${isExpandable ? `<div id="nested-${escapeHtml(key)}" style="display: none; margin-top: 10px;"></div>` : ''}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function detectType(value) {
+            if (value === null) return 'null';
+            if (Array.isArray(value)) return 'array';
+            if (typeof value === 'object') return 'object';
+            return typeof value; // 'string', 'number', 'boolean'
+        }
+
+        function formatValue(value, type) {
+            switch (type) {
+                case 'null':
+                    return '<span style="color: #718096;">null</span>';
+                case 'string':
+                    return `"${escapeHtml(value)}"`;
+                case 'number':
+                    return `<span style="color: #4299e1;">${value}</span>`;
+                case 'boolean':
+                    return `<span style="color: #9f7aea;">${value}</span>`;
+                case 'array':
+                    return `Array(${value.length}) [...]`;
+                case 'object':
+                    return `Object {${Object.keys(value).length} keys}`;
+                default:
+                    return escapeHtml(String(value));
+            }
+        }
+
+        function toggleExpand(key) {
+            const nestedDiv = document.getElementById(`nested-${key}`);
+            if (!nestedDiv) return;
+
+            if (nestedDiv.style.display === 'none') {
+                // Expand
+                const value = currentBlackboard[key];
+                if (Array.isArray(value)) {
+                    // Render array items
+                    const arrayObj = value.reduce((acc, item, idx) => {
+                        acc[`[${idx}]`] = item;
+                        return acc;
+                    }, {});
+                    nestedDiv.innerHTML = renderVariableTree(arrayObj, 1);
+                } else if (typeof value === 'object' && value !== null) {
+                    // Render object properties
+                    nestedDiv.innerHTML = renderVariableTree(value, 1);
+                }
+                nestedDiv.style.display = 'block';
+            } else {
+                // Collapse
+                nestedDiv.style.display = 'none';
+            }
+        }
+
+        function editVariable(key) {
+            editingVariable = key;
+            const value = currentBlackboard[key];
+            const type = detectType(value);
+
+            // Populate modal
+            document.getElementById('editVarKey').value = key;
+            document.getElementById('editVarType').textContent = type;
+            document.getElementById('editVarType').className = `variable-type ${type}`;
+
+            // Format value for editing
+            let displayValue;
+            if (type === 'object' || type === 'array') {
+                displayValue = JSON.stringify(value, null, 2);
+            } else if (type === 'string') {
+                displayValue = value;
+            } else {
+                displayValue = String(value);
+            }
+
+            document.getElementById('editVarValue').value = displayValue;
+            document.getElementById('editVarError').style.display = 'none';
+
+            // Show modal
+            document.getElementById('editVariableModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editVariableModal').classList.remove('active');
+            editingVariable = null;
+        }
+
+        function validateValue(value, expectedType) {
+            try {
+                switch (expectedType) {
+                    case 'string':
+                        return { valid: true, parsed: value };
+
+                    case 'number':
+                        const num = Number(value);
+                        if (isNaN(num)) {
+                            return { valid: false, error: 'Invalid number format' };
+                        }
+                        return { valid: true, parsed: num };
+
+                    case 'boolean':
+                        const lower = value.toLowerCase().trim();
+                        if (lower === 'true') return { valid: true, parsed: true };
+                        if (lower === 'false') return { valid: true, parsed: false };
+                        return { valid: false, error: 'Must be "true" or "false"' };
+
+                    case 'array':
+                    case 'object':
+                        const parsed = JSON.parse(value);
+                        if (expectedType === 'array' && !Array.isArray(parsed)) {
+                            return { valid: false, error: 'Must be a valid JSON array' };
+                        }
+                        if (expectedType === 'object' && (Array.isArray(parsed) || typeof parsed !== 'object')) {
+                            return { valid: false, error: 'Must be a valid JSON object' };
+                        }
+                        return { valid: true, parsed };
+
+                    case 'null':
+                        if (value.trim().toLowerCase() === 'null') {
+                            return { valid: true, parsed: null };
+                        }
+                        return { valid: false, error: 'Must be "null"' };
+
+                    default:
+                        return { valid: true, parsed: value };
+                }
+            } catch (err) {
+                return { valid: false, error: err.message };
+            }
+        }
+
+        function saveVariable() {
+            const key = editingVariable;
+            const newValue = document.getElementById('editVarValue').value;
+            const expectedType = detectType(currentBlackboard[key]);
+
+            // Validate
+            const validation = validateValue(newValue, expectedType);
+            if (!validation.valid) {
+                document.getElementById('editVarError').textContent = validation.error;
+                document.getElementById('editVarError').style.display = 'block';
+                return;
+            }
+
+            // Show confirmation dialog
+            showConfirmDialog(key, currentBlackboard[key], validation.parsed);
+            closeEditModal();
+        }
+
+        function showConfirmDialog(key, oldValue, newValue) {
+            document.getElementById('confirmVarKey').textContent = key;
+
+            // Format old/new values for display
+            const formatForDisplay = (val) => {
+                if (typeof val === 'object') return JSON.stringify(val, null, 2);
+                if (typeof val === 'string') return `"${val}"`;
+                return String(val);
+            };
+
+            document.getElementById('confirmOldValue').textContent = formatForDisplay(oldValue);
+            document.getElementById('confirmNewValue').textContent = formatForDisplay(newValue);
+
+            // Store pending change
+            window.pendingChange = { key, newValue };
+
+            // Show confirmation modal
+            document.getElementById('confirmDialog').classList.add('active');
+        }
+
+        function closeConfirmDialog() {
+            document.getElementById('confirmDialog').classList.remove('active');
+            window.pendingChange = null;
+        }
+
+        async function confirmSave() {
+            if (!window.pendingChange) return;
+
+            const { key, newValue } = window.pendingChange;
+
+            try {
+                // Call Tauri backend to inject context
+                await invoke('ui_inject_context', {
+                    request: {
+                        key: key,
+                        value: newValue
+                    }
+                });
+
+                // Update local state
+                currentBlackboard[key] = newValue;
+
+                // Close dialog
+                closeConfirmDialog();
+
+                // Show success feedback
+                addLog('info', `✅ Variable "${key}" updated successfully`);
+
+                // Refresh state panel
+                pollState();
+
+            } catch (err) {
+                console.error('Failed to update variable:', err);
+                addLog('error', `❌ Failed to update variable "${key}": ${err}`);
+                closeConfirmDialog();
+            }
+        }
+
+        function updateBudget(budget) {
+            const percentage = budget.percentage;
+            document.getElementById('budgetFill').style.width = `${percentage}%`;
+            document.getElementById('budgetText').textContent =
+                `$${(budget.used_cents / 100).toFixed(2)} / $${(budget.limit_cents / 100).toFixed(2)}`;
+        }
+
+        function addLog(level, message) {
+            const container = document.getElementById('logsContent');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${level}`;
+            entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span>${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+
+            // Keep only last 100 logs (memory management)
+            if (container.children.length > 100) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        // Initialize
+        addLog('info', 'Command Center initialized');
+        addLog('info', 'Connecting to execution engine...');
+
+        // Mount graph visualization (uses event-driven updates)
+        mountGraphVisualization();
+
+        // Initialize terminal (create first session)
+        initializeTerminal();
+
+        // Initial state poll (subsequent updates via events)
+        pollState();
+    </script>
+
+    <!-- Edit Variable Modal -->
+    <div id="editVariableModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">✏️ Edit Blackboard Variable</h3>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Variable Key</label>
+                    <input type="text" id="editVarKey" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <div>
+                        <span id="editVarType" class="variable-type"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Value</label>
+                    <textarea id="editVarValue" class="form-input form-textarea" placeholder="Enter new value..."></textarea>
+                    <div id="editVarError" class="form-error" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-save" onclick="saveVariable()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div id="confirmDialog" class="modal-overlay">
+        <div class="modal-content confirm-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">⚠️ Confirm State Modification</h3>
+                <button class="modal-close" onclick="closeConfirmDialog()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-message">
+                    You are about to modify the execution state. This is a <strong>God Mode</strong> operation
+                    that can affect running workflows.
+                </p>
+                <div class="confirm-warning">
+                    <p class="confirm-warning-text">
+                        ⚡ Warning: Changing execution state during runtime may cause unexpected behavior
+                        or workflow failures. Only proceed if you understand the implications.
+                    </p>
+                </div>
+                <div class="diff-preview">
+                    <div><strong>Variable:</strong> <span id="confirmVarKey"></span></div>
+                    <div style="margin-top: 8px;">
+                        <div><strong>Old Value:</strong> <span id="confirmOldValue" class="diff-old"></span></div>
+                        <div><strong>New Value:</strong> <span id="confirmNewValue" class="diff-new"></span></div>
+                    </div>
+                </div>
+                <p class="confirm-message" style="margin-bottom: 0;">
+                    Are you sure you want to proceed?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeConfirmDialog()">Cancel</button>
+                <button class="btn-save" onclick="confirmSave()" style="background: #f6ad55;">Confirm & Apply</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

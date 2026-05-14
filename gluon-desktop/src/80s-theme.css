@@ -1,0 +1,361 @@
+/* 80s Hologram Theme for Gluon v2 Desktop */
+
+/* Ten plik definiuje wygląd aplikacji, gdy motyw '80s' jest aktywny. */
+/* Używa zmiennych CSS (--theme-80s-bg, --theme-80s-accent), które są ustawiane w main.js */
+/* na podstawie wyboru użytkownika. */
+
+body.theme-80s {
+  --bg-primary: var(--theme-80s-bg);
+  --bg-secondary: color-mix(in srgb, var(--theme-80s-bg) 90%, var(--theme-80s-accent) 5%);
+  --bg-tertiary: color-mix(in srgb, var(--theme-80s-bg) 95%, var(--theme-80s-accent) 10%);
+  --bg-hover: color-mix(in srgb, var(--theme-80s-bg) 85%, var(--theme-80s-accent) 15%);
+  
+  --text-primary: var(--theme-80s-accent);
+  --text-secondary: color-mix(in srgb, var(--theme-80s-accent) 70%, var(--theme-80s-bg) 30%);
+  --text-muted: color-mix(in srgb, var(--theme-80s-accent) 50%, var(--theme-80s-bg) 50%);
+  
+  --border-color: color-mix(in srgb, var(--theme-80s-accent) 50%, transparent);
+  --border-light: var(--theme-80s-accent);
+
+  /* Reset cieni neumorficznych */
+  --shadow-dark: transparent;
+  --shadow-light: transparent;
+  --inset-dark: rgba(0, 0, 0, 0.2);
+  --inset-light: color-mix(in srgb, var(--theme-80s-accent) 10%, transparent);
+
+  font-family: 'Courier New', monospace;
+  background: var(--theme-80s-bg);
+  color: var(--theme-80s-accent);
+  text-shadow: 0 0 3px var(--theme-80s-accent);
+}
+
+body.theme-80s::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle, color-mix(in srgb, var(--theme-80s-accent) 8%, transparent) 1px, transparent 1px);
+  background-size: 25px 25px;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+/* Override podstawowych komponentów */
+body.theme-80s .neumorphic-inset,
+body.theme-80s .neumorphic-raised,
+body.theme-80s .neumorphic-inset-sm,
+body.theme-80s .neumorphic-raised-sm {
+  border: 2px solid var(--theme-80s-accent);
+  box-shadow: 0 0 5px var(--theme-80s-accent), 0 0 10px var(--theme-80s-accent), inset 0 0 5px rgba(0,0,0,0.2);
+  background: 
+    repeating-linear-gradient(
+      60deg,
+      rgba(0,0,0,0.1) 0px,
+      rgba(0,0,0,0.1) 2px,
+      transparent 2px,
+      transparent 8px
+    ),
+    var(--bg-secondary);
+  border-radius: 10px;
+}
+
+body.theme-80s .interactive-lift:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 10px var(--theme-80s-accent), 0 0 15px var(--theme-80s-accent);
+  filter: brightness(1.2);
+}
+
+body.theme-80s .text-gradient {
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+  background-clip: unset;
+  color: var(--theme-80s-accent);
+  filter: drop-shadow(0 0 5px var(--theme-80s-accent));
+}
+
+/* Header */
+body.theme-80s .header {
+  background: rgba(0,0,0,0.5);
+}
+
+/* Hide default logo/name images in 80s theme */
+body.theme-80s .logo-img-default,
+body.theme-80s .logo-text-img-default {
+  display: none;
+}
+
+/* Show and style the masked elements in 80s theme */
+body.theme-80s .logo-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+/* Logo wrapper with glow effect */
+body.theme-80s .gluon-logo-masked {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+body.theme-80s .logo-link:hover .gluon-logo-masked {
+  transform: scale(1.1) rotate(15deg);
+}
+
+/* Glow effect - większe koło z blur */
+body.theme-80s .gluon-logo-masked::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('assets/icons/logo_alpha_background.png') center/contain no-repeat;
+  /* Poświata generowana bezpośrednio z obrazka tła */
+  filter: drop-shadow(0 0 10px var(--theme-80s-accent)) drop-shadow(0 0 15px var(--theme-80s-accent));
+  opacity: 0.9;
+  z-index: 1;
+}
+
+/* Main logo with mask */
+body.theme-80s .gluon-logo-masked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background-color: var(--theme-80s-accent);
+  
+  -webkit-mask-image: url('assets/icons/logo_alpha.png');
+  mask-image: url('assets/icons/logo_alpha.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  
+  z-index: 2;
+}
+
+body.theme-80s .gluon-name-masked {
+  display: block;
+  width: 150px;
+  height: 46px;
+  background-color: var(--theme-80s-accent);
+  -webkit-mask-image: url('assets/gluon_alpha.png');
+  mask-image: url('assets/gluon_alpha.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  filter: drop-shadow(0 0 3px var(--theme-80s-accent));
+}
+
+/* Connection Indicator Override */
+body.theme-80s .indicator.connected {
+  background: var(--theme-80s-accent);
+  box-shadow: 0 0 5px var(--theme-80s-accent), 0 0 10px var(--theme-80s-accent);
+  animation: none;
+}
+
+body.theme-80s .indicator.disconnected {
+  background: transparent;
+  border: 2px solid var(--border-color);
+  box-shadow: none;
+}
+
+/* Tabs */
+body.theme-80s .tab-link {
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  clip-path: polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%);
+}
+
+body.theme-80s .tab-link.active {
+  color: var(--theme-80s-bg);
+  background-color: var(--theme-80s-accent);
+  background-image: repeating-linear-gradient( 0deg, transparent, transparent 2px, color-mix(in srgb, var(--theme-80s-bg) 30%, transparent) 2px, color-mix(in srgb, var(--theme-80s-bg) 30%, transparent) 3px );
+  opacity: 0.7;
+  text-shadow: none;
+  border-color: var(--theme-80s-accent);
+  box-shadow: 0 0 10px var(--theme-80s-accent), 0 0 20px var(--theme-80s-accent);
+}
+
+/* Przyciski */
+body.theme-80s .btn {
+  color: var(--theme-80s-accent);
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+}
+body.theme-80s .btn-primary {
+  color: var(--theme-80s-bg);
+  background-color: var(--theme-80s-accent);
+  background-image: repeating-linear-gradient( 0deg, transparent, transparent 2px, color-mix(in srgb, var(--theme-80s-bg) 30%, transparent) 2px, color-mix(in srgb, var(--theme-80s-bg) 30%, transparent) 3px );
+  opacity: 0.9;
+  text-shadow: none;
+}
+body.theme-80s .btn-danger {
+  background: var(--status-error);
+  color: #fff;
+  text-shadow: none;
+}
+
+body.theme-80s .btn-primary:hover:not(:disabled) {
+  color: var(--theme-80s-accent);
+  text-shadow: 0 0 3px var(--theme-80s-accent);
+}
+
+/* Listy (projekty, środowiska) */
+body.theme-80s .project-item,
+body.theme-80s .environment-item {
+  transition: all 0.2s ease;
+}
+
+body.theme-80s .project-item.active,
+body.theme-80s .environment-item.active {
+  color: var(--theme-80s-bg);
+  background-color: var(--theme-80s-accent);
+  background-image: repeating-linear-gradient( 0deg, transparent, transparent 2px, color-mix(in srgb, var(--theme-80s-bg) 30%, transparent) 2px, color-mix(in srgb, var(--theme-80s-bg) 30%, transparent) 3px );
+  opacity: 0.9;
+  text-shadow: none;
+}
+
+body.theme-80s .project-item.active .project-item-path,
+body.theme-80s .environment-item.active .env-name {
+  color: var(--theme-80s-bg);
+}
+
+/* Override dla małych przycisków akcji */
+body.theme-80s .env-action-btn:hover:not(:disabled) {
+  box-shadow: 0 0 8px var(--theme-80s-accent), 0 0 12px var(--theme-80s-accent);
+}
+
+/* Modale */
+body.theme-80s .modal-content {
+  border-width: 3px;
+}
+
+body.theme-80s .form-group input,
+body.theme-80s .form-group textarea,
+body.theme-80s .form-group select {
+  font-family: 'Courier New', monospace;
+  border-width: 2px;
+}
+
+body.theme-80s .form-group input:focus,
+body.theme-80s .form-group textarea:focus,
+body.theme-80s .form-group select:focus {
+  outline: none;
+  border-color: var(--theme-80s-accent);
+  box-shadow: 0 0 5px var(--theme-80s-accent);
+}
+
+/* Styl dla nowej zakładki Style */
+.theme-selector-card {
+  padding: 20px;
+}
+.theme-buttons, .color-pickers {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+  align-items: center;
+}
+.color-picker-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.color-picker-wrapper label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+input[type="color"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 50px;
+  height: 50px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+input[type="color"]::-webkit-color-swatch {
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+}
+input[type="color"]::-moz-color-swatch {
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+}
+
+/* Specyficzne dla motywu 80s */
+body.theme-80s .color-picker-wrapper label {
+  color: var(--text-primary);
+}
+body.theme-80s input[type="color"]::-webkit-color-swatch {
+  border-color: var(--theme-80s-accent);
+}
+body.theme-80s input[type="color"]::-moz-color-swatch {
+  border-color: var(--theme-80s-accent);
+}
+
+/* Updates & License Tab Overrides */
+
+/* Poprawka widoczności numeru wersji */
+body.theme-80s .app-version {
+  text-shadow: none;
+  color: var(--text-muted);
+  opacity: 0.9;
+}
+
+/* Styl dla wskaźnika statusu licencji */
+body.theme-80s #license-status-indicator.valid {
+  background: var(--theme-80s-accent);
+  box-shadow: 0 0 5px var(--theme-80s-accent), 0 0 8px var(--theme-80s-accent);
+}
+body.theme-80s #license-status-indicator.invalid {
+  background: transparent;
+  border: 2px solid var(--theme-80s-accent);
+  box-shadow: none;
+}
+body.theme-80s #license-status-indicator.missing {
+  background: transparent;
+  border: 2px solid var(--theme-80s-accent);
+  box-shadow: none;
+}
+
+/* Styl dla komunikatów o statusie aktualizacji */
+body.theme-80s #update-status-text {
+  background: rgba(0,0,0,0.2);
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+  text-shadow: none;
+}
+
+body.theme-80s #update-status-text.success {
+  color: var(--theme-80s-accent);
+  border-color: var(--theme-80s-accent);
+  text-shadow: 0 0 4px var(--theme-80s-accent);
+}
+
+body.theme-80s #update-status-text.error {
+  color: var(--theme-80s-accent);
+  border-color: var(--theme-80s-accent);
+  text-shadow: 0 0 4px var(--theme-80s-accent);
+}

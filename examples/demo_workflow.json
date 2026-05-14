@@ -1,0 +1,203 @@
+{
+  "workflow_name": "Demo: Research Rust Error Handling → Generate Code",
+  "description": "Complete demonstration workflow showcasing all 5 phases of Gluon v3",
+  "version": "1.0.0",
+  "author": "Gluon Team",
+  "created_at": "2026-02-01",
+
+  "graph": {
+    "entry_node": "researcher",
+    "nodes": [
+      {
+        "id": "researcher",
+        "name": "Code Researcher",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Search the Rust codebase for error handling patterns. Use the search_code tool to find relevant examples. Store findings in the 'research_results' Blackboard variable.\n\nQuery: {{search_query}}",
+          "tools": ["search_code"],
+          "max_iterations": 3
+        }
+      },
+      {
+        "id": "analyzer",
+        "name": "Pattern Analyzer",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Analyze the search results: {{research_results}}\n\nIdentify the most common error handling pattern used in this codebase. Look for:\n- Result<T, E> usage\n- Custom error types\n- Error propagation with ?\n- Error wrapping patterns\n\nStore your analysis in 'pattern_analysis'.",
+          "max_iterations": 2
+        }
+      },
+      {
+        "id": "quality_check",
+        "name": "Quality Gate",
+        "type": "Logic",
+        "config": {
+          "logic_type": "If",
+          "condition": "pattern_found == true"
+        }
+      },
+      {
+        "id": "code_generator",
+        "name": "Code Generator",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Based on the pattern analysis:\n{{pattern_analysis}}\n\nGenerate a new error handling module following the identified best practices. Include:\n- Custom error type enum\n- From implementations for common errors\n- Helper functions for error creation\n- Example usage\n\nStore the generated code in 'generated_code'.",
+          "max_iterations": 2
+        }
+      },
+      {
+        "id": "file_writer",
+        "name": "File Writer",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Write the generated code to a file:\n\nCode:\n{{generated_code}}\n\nUse the write_file tool to save it to 'src/demo_error_handling.rs'.",
+          "tools": ["write_file"],
+          "max_iterations": 1
+        }
+      },
+      {
+        "id": "retry_research",
+        "name": "Retry Search",
+        "type": "Action",
+        "config": {
+          "action": "log",
+          "message": "No clear pattern found. Broadening search criteria..."
+        }
+      },
+      {
+        "id": "success",
+        "name": "Success",
+        "type": "Action",
+        "config": {
+          "action": "log",
+          "message": "✅ Demo workflow completed successfully! Check src/demo_error_handling.rs"
+        }
+      }
+    ],
+
+    "edges": [
+      {
+        "from": "researcher",
+        "to": "analyzer",
+        "type": "Default"
+      },
+      {
+        "from": "analyzer",
+        "to": "quality_check",
+        "type": "Default"
+      },
+      {
+        "from": "quality_check",
+        "to": "code_generator",
+        "type": "Conditional",
+        "condition": "pattern_found == true"
+      },
+      {
+        "from": "quality_check",
+        "to": "retry_research",
+        "type": "Conditional",
+        "condition": "pattern_found == false"
+      },
+      {
+        "from": "retry_research",
+        "to": "researcher",
+        "type": "Default"
+      },
+      {
+        "from": "code_generator",
+        "to": "file_writer",
+        "type": "Default"
+      },
+      {
+        "from": "file_writer",
+        "to": "success",
+        "type": "Default"
+      }
+    ]
+  },
+
+  "blackboard_init": {
+    "search_query": "Result error handling thiserror anyhow",
+    "research_results": [],
+    "pattern_analysis": "",
+    "pattern_found": false,
+    "generated_code": "",
+    "retry_count": 0
+  },
+
+  "budget": {
+    "limit_cents": 200,
+    "models": {
+      "claude-sonnet-4": 200
+    }
+  },
+
+  "metadata": {
+    "tags": ["demo", "code-generation", "rust", "error-handling"],
+    "difficulty": "intermediate",
+    "estimated_duration_minutes": 3,
+    "demonstrates_phases": [
+      "Phase 1: Graph execution with conditional branching and loops",
+      "Phase 3: Tantivy code search",
+      "Phase 4: MCP tools (search_code, write_file)",
+      "Phase 5: Live visualization in Command Center"
+    ]
+  },
+
+  "instructions": {
+    "prerequisites": [
+      "Gluon backend running (cargo run --release)",
+      "Command Center UI open",
+      "Tantivy index populated with Rust codebase"
+    ],
+    "steps": [
+      "1. Index your Rust codebase: gluon index /path/to/rust/project",
+      "2. Load this workflow in Command Center: File → Open Workflow",
+      "3. Click ▶ Play button to start execution",
+      "4. Watch the graph visualization - nodes light up as they execute",
+      "5. Monitor Agent Thoughts panel for reasoning process",
+      "6. When execution pauses at quality_check node, inspect Blackboard",
+      "7. Use God Mode to modify 'pattern_found' if needed",
+      "8. Resume execution and watch code generation",
+      "9. Check generated file: src/demo_error_handling.rs"
+    ],
+    "expected_behavior": [
+      "✓ Researcher node searches Tantivy index for error handling code",
+      "✓ Analyzer extracts common patterns from search results",
+      "✓ Quality gate checks if pattern_found == true",
+      "✓ If true: proceeds to code generation → file write → success",
+      "✓ If false: retries research with broader query (max 3 retries)",
+      "✓ Generated file contains custom error type following codebase patterns"
+    ],
+    "god_mode_demo": [
+      "🔍 Pause execution at 'quality_check' node (Space bar)",
+      "🔍 Open State Inspector → find 'pattern_found' variable",
+      "🔍 Click 'Edit' → change to 'true' → Save → Confirm",
+      "🔍 Resume execution → watch workflow proceed to code generation",
+      "This demonstrates God Mode's ability to modify execution state"
+    ]
+  },
+
+  "test_expectations": {
+    "should_complete": true,
+    "max_execution_time_seconds": 180,
+    "expected_files_created": ["src/demo_error_handling.rs"],
+    "expected_blackboard_keys": [
+      "search_query",
+      "research_results",
+      "pattern_analysis",
+      "pattern_found",
+      "generated_code"
+    ],
+    "expected_tool_calls": ["search_code", "write_file"],
+    "expected_thoughts": {
+      "min_planning": 2,
+      "min_observations": 3,
+      "min_decisions": 1
+    }
+  }
+}

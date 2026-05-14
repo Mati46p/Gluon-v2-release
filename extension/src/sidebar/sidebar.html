@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gluon Panel</title>
+  <link rel="stylesheet" href="sidebar.css">
+  <link rel="stylesheet" href="80s-theme.css">
+  <link rel="stylesheet" href="../features/workflows/graph-workflow-styles.css">
+  <link rel="stylesheet" href="components/agent-preset-selector.css">
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="gluon-logo" title="Gluon v2"></div>
+      <div class="header-center">
+        <img src="../../assets/Gluon_v2_logo.png" alt="Gluon v2" class="header-logo-text">
+        <div class="header-logo-text-masked"></div>
+        <div class="selection-title text-gradient">v0.2.2</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="screen-toggle-buttons">
+        <button id="projectScreenBtn" class="screen-btn active" title="Project sidebar">📋</button>
+        <button id="mcpResultsScreenBtn" class="screen-btn" title="MCP Results">🔬</button>
+        <button id="agentScreenBtn" class="screen-btn" style="display: none;" title="Agent workflow">🤖</button>
+        <button id="knowledgeScreenBtn" class="screen-btn" style="display: none;" title="RAG Knowledge">🧠</button>
+        <button id="copyJsonSchemaBtn" class="screen-btn" title="Copy Structured Output Schema (JSON)">JSON</button>
+      </div>
+
+      <div class="connection-indicator disconnected" id="connectionIndicator" title="Connection status"></div>
+    </div>
+  </div>
+
+  <!-- Status message -->
+  <div id="statusMessage" class="status-message" style="display: none;"></div>
+
+  <!-- MCP Status Progress Bar -->
+  <div id="mcpProgressContainer" class="mcp-progress-container" style="display: none;">
+    <div class="mcp-progress-bar">
+      <div id="mcpProgressFill" class="mcp-progress-fill"></div>
+    </div>
+    <div id="mcpProgressText" class="mcp-progress-text"></div>
+  </div>
+
+  <!-- Main Content Container with Screen Toggle -->
+  <div id="mainContent" class="main-content-wrapper">
+    <!-- Project Screen -->
+    <div id="projectScreen" class="screen-content active">
+      <!-- Project Selection -->
+      <div class="project-selection-container">
+        <div class="project-selection-header">
+          <span class="selection-title text-gradient">Projects</span>
+          <button id="deselectAllBtn" class="clear-all-btn" title="Deselect all projects">Clear All</button>
+        </div>
+        <div id="projectSelect" class="project-checkboxes"></div>
+      </div>
+
+      <!-- Prompt Actions -->
+      <div class="prompt-actions-container">
+          <button id="autoSelectBtn" class="action-button prompt-button">🎯</button>
+          <button id="contextHandoffBtn" class="action-button prompt-button">📋</button>
+          <button id="promptHandoffBtn" class="action-button prompt-button">✍️</button>
+          <button id="manageTemplatesBtn" class="icon-btn" title="Manage Templates">⚙️</button>
+      </div>
+
+      <!-- Environment & Prompts -->
+      <div id="generationConfig" class="generation-config-container">
+        <!-- Environment Selection -->
+        <div class="environment-selection-container section-container">
+          <div class="section-header">
+            <label for="environmentSelect" class="section-title text-gradient">Environment</label>
+            <div class="header-actions">
+              <button id="attachPromptFilesBtn" class="icon-btn tiny" title="Attach files as prompts" style="margin-right: 8px;">
+                📎
+              </button>
+              <span id="promptsCount" class="prompts-count">0 selected</span>
+            </div>
+          </div>
+          <select id="environmentSelect" class="select-input">
+            <option value="">Select an environment...</option>
+          </select>
+        </div>
+
+        <!-- Prompts Selection -->
+        <div id="promptsSection" class="prompts-selection-container section-container" style="display: none;">
+          <div id="promptsList" class="prompts-list">
+            <!-- Prompt checkboxes will be injected here -->
+          </div>
+        </div>
+
+        <!-- Quick Task -->
+        <div class="quick-task-container section-container">
+            <label for="quickTaskInput" class="section-title text-gradient">Quick Task (optional)</label>
+            <textarea id="quickTaskInput" class="textarea-input" rows="2" placeholder="E.g., 'Fix the login bug' or 'Add dark mode'"></textarea>
+            <div class="help-text">Use ↑/↓ to navigate through history</div>
+        </div>
+      </div>
+      <!-- Search -->
+      <div class="search-container" style="display: flex; gap: 6px;">
+        <input type="text" id="searchInput" class="search-input" placeholder="Filter files..." />
+      </div>
+
+      <!-- File Tree -->
+      <div class="file-tree-container ui-panel neumorphic-inset" id="fileTreeContainer">
+        <div class="file-tree-header">
+          <div class="file-tree-title text-gradient">Files</div>
+          <button id="addFromDriveBtn" class="icon-btn tiny" title="Add from Google Drive" style="margin-left: auto; margin-right: 8px;">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M5.5 0L0 9h3l5.5-9zm5 0l-3 5h6l-3-5zm-5.5 9L0 14h11l-5.5-5z"/>
+            </svg>
+          </button>
+          <div class="file-count" id="fileCount">0 files</div>
+        </div>
+        <div id="fileTree" class="file-tree">
+          <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <div class="empty-text">Select a project</div>
+          </div>
+        </div>
+        <div class="file-tree-resizer" id="fileTreeResizer"></div>
+      </div>
+
+      <!-- Context File Tiles -->
+      <div class="context-tiles-section">
+        <div id="contextTiles" class="context-tiles-container">
+          <!-- Draggable tiles will be inserted here -->
+        </div>
+        <button id="showMoreContextBtn" class="show-more-btn" style="display: none;">
+          <span class="expand-icon">▼</span>
+          <span class="btn-text">Show <span id="hiddenCount">0</span> more</span>
+        </button>
+      </div>
+
+      <!-- Selection Info -->
+      <div id="selectionInfo" class="selection-summary" style="display: none;">
+        <div class="selection-info">
+          <span class="selection-count" id="selectionCount">0 files</span>
+          <span class="selection-size" id="selectionSize">0 KB</span>
+        </div>
+        <button id="clearSelection" class="clear-selection">Clear</button>
+      </div>
+
+      <!-- Generation Options -->
+      <div class="generation-options">
+          <label class="checkbox-label" title="Helps AI understand project organization">
+            <input type="checkbox" id="includeStructure" checked />
+            Include Project Structure
+          </label>
+      </div>
+
+       <!-- Debug Options -->
+      <div id="debugOptions" class="section-container">
+        <label for="logsInput" class="section-title text-gradient">logs Input</label>
+        <textarea id="logsInput" class="textarea-input" rows="3" placeholder="Paste application logs here (optional)..."></textarea>
+        <div class="generation-options" style="padding: 4px 0 0 0;">
+             <label class="checkbox-label" title="Include the logs above in the generated context file">
+                <input type="checkbox" id="includeLogs" />
+                Include logs in context file
+            </label>
+        </div>
+      </div>
+
+      <!-- Gluon MCP Tools -->
+      <div id="mcpToolsSection" class="section-container">
+        <label class="section-title text-gradient">🧠 Gluon MCP Tools</label>
+        <div class="help-text" style="margin-bottom: 8px;">
+          Run Gluon analysis tools on your codebase
+        </div>
+
+        <!-- Semantic Search input + button -->
+        <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 8px;">
+          <input
+            type="text"
+            id="mcpSearchInput"
+            class="textarea-input"
+            placeholder="Search codebase..."
+            style="flex: 1; padding: 6px 10px; height: auto; min-height: unset;"
+          />
+          <button id="mcpSearchBtn" class="action-button secondary" style="padding: 6px 10px; white-space: nowrap;">
+            🔍 Search
+          </button>
+        </div>
+
+        <!-- Analysis tool buttons -->
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+          <button id="mcpProtocolsBtn" class="action-button secondary" style="flex: 1; min-width: 45%;">
+            🔗 Protocols
+          </button>
+          <button id="mcpImpactBtn" class="action-button secondary" style="flex: 1; min-width: 45%;">
+            💥 Impact
+          </button>
+          <button id="mcpVerifyBtn" class="action-button secondary" style="flex: 1; min-width: 45%;">
+            ✅ Verify
+          </button>
+          <button id="mcpCpgBtn" class="action-button secondary" style="flex: 1; min-width: 45%;">
+            🔬 CPG
+          </button>
+        </div>
+
+        <!-- Status -->
+        <div id="mcpToolsStatus" style="font-size: 11px; color: var(--text-secondary); text-align: center; padding: 4px 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+          Ready
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-buttons">
+        <button id="copyBtn" class="action-button" disabled>
+          📋 Copy
+        </button>
+        <button id="generateBtn" class="action-button primary neumorphic-raised interactive-lift" disabled>
+          ✨ Generate
+        </button>
+        <button id="generateSimpleBtn" class="action-button secondary neumorphic-raised interactive-lift" disabled>
+          📄 Files Only
+        </button>
+        <button id="generateMapBtn" class="action-button secondary neumorphic-raised interactive-lift" disabled>
+          🗺️ Map
+        </button>
+      </div>
+
+      <!-- Progress bar container (initially hidden) -->
+      <div id="contextProgressContainer" style="display: none; margin-top: 12px;">
+        <div style="background: var(--bg-secondary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <!-- Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span id="contextProgressStage" style="font-size: 11px; font-weight: 600; color: var(--accent-blue);">
+              Initializing...
+            </span>
+            <span id="contextProgressPercentage" style="font-size: 11px; font-weight: 600; color: var(--text-primary);">
+              0%
+            </span>
+          </div>
+
+          <!-- Progress bar -->
+          <div style="width: 100%; height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden; margin-bottom: 8px; position: relative;">
+            <div id="contextProgressBar"
+                 style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); transition: width 0.3s ease;">
+            </div>
+            <!-- Activity indicator for when progress bar is stuck -->
+            <div id="contextProgressActivity"
+                 style="position: absolute; top: 0; right: 0; width: 30%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shimmer 2s infinite; display: none;">
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div id="contextProgressMessage" style="font-size: 10px; color: var(--text-muted); margin-bottom: 8px;">
+            Preparing...
+          </div>
+
+          <!-- File count (optional) -->
+          <div id="contextProgressFiles" style="font-size: 9px; color: var(--text-muted); display: none;">
+            Files processed: <span id="contextProgressFilesCount">0</span> / <span id="contextProgressFilesTotal">0</span>
+          </div>
+
+          <!-- Cancel button -->
+          <button id="cancelContextBtn"
+                  style="width: 100%; padding: 6px; background: var(--status-error); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; margin-top: 8px;">
+            ❌ Cancel Generation
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Knowledge Screen (RAG) -->
+    <div id="knowledgeScreen" class="screen-content">
+
+      <!-- 1. Global Control -->
+      <div class="section-container" style="background: var(--bg-tertiary); border-radius: 8px;">
+        <div class="flex-v-center" style="justify-content: space-between; margin-bottom: 8px;">
+          <span class="section-title text-gradient">🧠 Knowledge Base</span>
+          <div id="ragServiceStatus" class="connection-indicator disconnected" title="Service Status"></div>
+        </div>
+
+        <div class="flex-v-center" style="gap: 8px;">
+          <button id="ragToggleBtn" class="action-button secondary" style="flex:1;">Start Service</button>
+          <div class="model-badge" title="Embedding Model">
+            <span style="font-size: 10px; color: var(--text-muted);">Model:</span>
+            <span style="font-weight: 600; color: var(--accent-blue);">Nomic-Embed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Project Context (Tabs style) -->
+      <div class="project-selection-container" style="margin-bottom: 8px;">
+        <div class="project-selection-header">
+          <span class="selection-title text-gradient">Scope</span>
+          <button id="ragRefreshProjectsBtn" class="icon-btn tiny" title="Refresh Projects" style="width: 20px; height: 20px; font-size: 10px; background: transparent; border: none; padding: 0;">🔄</button>
+        </div>
+        <div id="ragProjectTabs" class="project-checkboxes">
+          <!-- Project tabs injected by JS -->
+        </div>
+      </div>
+
+      <!-- 3. Stats & Actions -->
+      <div class="rag-stats-container">
+        <div class="rag-stat">
+          <span class="stat-val" id="ragStatIndexed">0</span>
+          <span class="stat-label">Indexed</span>
+        </div>
+        <div class="rag-stat warning">
+          <span class="stat-val" id="ragStatOutdated">0</span>
+          <span class="stat-label">Changed</span>
+        </div>
+        <div class="rag-stat error">
+          <span class="stat-val" id="ragStatNew">0</span>
+          <span class="stat-label">New</span>
+        </div>
+      </div>
+
+      <!-- 4. File Status Tree -->
+      <div class="file-tree-container ui-panel neumorphic-inset" style="flex: 1; min-height: 200px;">
+        <div class="file-tree-header">
+          <div class="file-tree-title">File Status</div>
+          <div style="display: flex; gap: 4px;">
+             <button id="ragSelectAllBtn" class="mini-btn" style="padding: 2px 6px; font-size: 9px;">All</button>
+             <button id="ragSelectChangedBtn" class="mini-btn" style="padding: 2px 6px; font-size: 9px;">Changed</button>
+             <button id="ragSelectNoneBtn" class="mini-btn" style="padding: 2px 6px; font-size: 9px;">None</button>
+             <button id="ragRefreshBtn" class="icon-btn tiny" title="Refresh Status">🔄</button>
+          </div>
+        </div>
+        <div id="ragFileTree" class="file-tree">
+          <div class="empty-state">
+            <div class="empty-icon">📂</div>
+            <div class="empty-text">Select a project to view knowledge status</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Footer Actions -->
+      <div class="action-buttons" style="padding-top: 8px; border-top: 1px solid var(--border-color);">
+        <button id="ragIndexChangesBtn" class="action-button primary" disabled>
+          🚀 Index Changes
+        </button>
+        <button id="ragRebuildBtn" class="action-button secondary" disabled>
+          🔄 Rebuild All
+        </button>
+      </div>
+
+      <!-- 6. RAG Chat Section -->
+      <div class="section-container" style="margin-top: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+        <div class="section-header" style="margin-bottom: 8px;">
+          <span class="section-title text-gradient">💬 RAG Search</span>
+        </div>
+        <div class="help-text" style="margin-bottom: 10px; font-size: 11px;">
+          Query your indexed knowledge base directly
+        </div>
+
+        <!-- Search Input (Multiline) -->
+        <div style="margin-bottom: 10px;">
+          <textarea
+            id="ragSearchInput"
+            class="text-input"
+            placeholder="Search knowledge base... (e.g., 'authentication logic', 'error handling in API routes')&#10;&#10;💡 Tip: Press Ctrl+Enter to search"
+            rows="5"
+            style="width: 100%; padding: 8px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-secondary); resize: vertical; min-height: 80px; font-family: inherit; line-height: 1.4;"
+          ></textarea>
+        </div>
+
+        <!-- Controls Row: Top-K and Search Button -->
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border-color); flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="ragTopK" style="font-size: 11px; color: var(--text-secondary);">Results:</label>
+              <span id="ragTopKValue" style="font-size: 12px; font-weight: 600; color: var(--accent-blue);">5</span>
+            </div>
+            <input
+              type="range"
+              id="ragTopK"
+              min="1"
+              max="200"
+              value="5"
+              style="width: 100%; cursor: pointer;"
+            />
+          </div>
+          <button id="ragSearchBtn" class="action-button primary" style="padding: 8px 14px; font-weight: 600; min-width: 100px;">
+            🔍 Search
+          </button>
+        </div>
+
+        <!-- Results Container -->
+        <div id="ragSearchResults" class="rag-results-container" style="max-height: 400px; overflow-y: auto; display: none;">
+          <!-- Results will be injected here -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Agent Screen -->
+    <div id="agentScreen" class="screen-content">
+      <!-- Workflow Tabs (Browser-style) -->
+      <div class="workflow-tabs-container">
+        <div class="workflow-tabs" id="workflowTabs">
+          <!-- Tabs will be injected here -->
+        </div>
+        <button id="newWorkflowTabBtn" class="new-tab-btn" title="Nowa zakładka workflow">+</button>
+      </div>
+
+      <!-- Workflow Header -->
+      <div class="section-container" style="padding: 10px; margin-bottom: 8px;">
+        <div class="section-header" style="margin-bottom: 8px;">
+          <span class="section-title text-gradient">🤖 Agent Workflow</span>
+          <div class="header-actions">
+            <label class="toggle-switch compact" title="Auto-forward messages between agents">
+              <input type="checkbox" id="autoForwardSwitch" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="help-text" style="margin-bottom: 8px;">
+          Create and connect multiple AI agents to work together in a workflow
+        </div>
+        <div class="workflow-controls">
+            <button id="addAgentBtn" class="gluon-btn-primary icon-only" title="Dodaj Agenta">
+                ➕
+            </button>
+            <button id="loadWorkflowBtn" class="gluon-btn-primary icon-only" title="Załaduj szablon workflow">
+                📦
+            </button>
+            <button id="exportTabBtn" class="gluon-btn-secondary icon-only" title="Zapis konfigurację">
+                💾
+            </button>
+            <button id="importTabBtn" class="gluon-btn-secondary icon-only" title="Importuj zakładkę z pliku">
+                📂
+            </button>
+            <button id="copySchemaBtn" class="gluon-btn-secondary icon-only" title="Kopiuj schemat architektury">
+                📋
+            </button>
+            <button id="refreshWorkflowBtn" class="gluon-btn-secondary icon-only" title="Odśwież graf">
+                🔄
+            </button>
+            <div class="view-toggle-wrapper">
+            <button id="viewListBtn" class="toggle-btn active" title="Widok listy">📋</button>
+            <button id="viewGraphBtn" class="toggle-btn" title="Widok grafu">🕸️</button>
+          </div>
+        </div>
+        <input type="file" id="importTabFileInput" accept=".json" style="display: none;">
+      </div>
+
+      <!-- Agents List Container (List View) -->
+      <div class="workflow-container" id="workflowListView">
+        <div id="agentsList" class="agents-list">
+          <div class="empty-state">
+            <div class="empty-icon">🤖</div>
+            <div class="empty-text">No agents configured</div>
+            <div class="help-text" style="margin-top: 8px;">Click "Add Agent" to create your first agent</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graph Editor Container (Graph View) -->
+      <div class="workflow-container" id="workflowGraphView" style="display: none; height: 500px; background: #0f172a; border-radius: 8px; border: 1px solid #334155;">
+        <div id="workflowGraph" style="width: 100%; height: 100%;"></div>
+        <div id="graphTooltip"></div>
+      </div>
+    </div>
+
+    <!-- MCP Results Screen -->
+    <div id="mcpResultsScreen" class="screen-content">
+      <div style="display: flex; flex-direction: column; height: 100%; padding: 8px; gap: 8px;">
+        <!-- Header z info -->
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <label class="section-title text-gradient" style="margin: 0;">🔬 MCP Results</label>
+          <button id="mcpResultsClearBtn" class="icon-btn tiny" title="Clear results" style="font-size: 11px;">✕ Clear</button>
+        </div>
+
+        <!-- Tool name badge -->
+        <div id="mcpResultsToolBadge" style="display: none; font-size: 11px; padding: 3px 8px; background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); border-radius: 12px; color: var(--accent-blue); width: fit-content;">
+          semantic_search
+        </div>
+
+        <!-- Wyniki - scrollable -->
+        <div id="mcpResultsContent" style="flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 10px; font-size: 12px; font-family: monospace; white-space: pre-wrap; word-break: break-word; color: var(--text-primary); min-height: 200px;">
+          <span style="color: var(--text-secondary);">No results yet. Run a tool from the Project panel.</span>
+        </div>
+
+        <!-- Akcje -->
+        <div style="display: flex; gap: 8px;">
+          <button id="mcpResultsSendBtn" class="action-button primary" style="flex: 1;" disabled>
+            🚀 Send to AI
+          </button>
+          <button id="mcpResultsCopyBtn" class="action-button secondary" style="flex: 0 0 auto; padding: 6px 12px;" disabled>
+            📋
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- Modale i Nakładki (umieszczone na końcu body dla poprawnego działania)    -->
+  <!-- ======================================================================== -->
+
+   <div id="promptInputModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <form id="promptInputForm">
+        <h2 id="promptModalTitle" class="modal-title">Enter Your Task</h2>
+        <input type="hidden" id="promptModalType">
+        <div class="form-group">
+          <label for="modalPromptTextarea">Prompt</label>
+          <textarea id="modalPromptTextarea" class="textarea-input" rows="5" required placeholder="Describe the task for the AI..."></textarea>
+          <div class="help-text">Use ↑/↓ to navigate through history</div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="cancelPromptModalBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Generate & Paste</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="createTemplateModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2 class="modal-title"></h2>
+      <form id="createTemplateForm">
+        <input type="hidden" id="templateId">
+        <div class="form-group">
+          <label for="templateName">Template Name</label>
+          <input type="text" id="templateName" required placeholder="e.g., 'Detailed Spec Generator'">
+        </div>
+        <div class="form-group">
+          <label>Template Type</label>
+          <div class="radio-group" id="templateTypeGroup">
+            <label><input type="radio" name="templateType" value="auto_select" checked> Auto Select</label>
+            <label><input type="radio" name="templateType" value="context_handoff"> Context Handoff</label>
+            <label><input type="radio" name="templateType" value="prompt_handoff"> Prompt Handoff</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="systemRolePrompt">Role / Behavior Definition</label>
+          <textarea id="systemRolePrompt" rows="3" placeholder="Define the AI's core role, e.g., 'You are a senior software architect specializing in creating technical specifications.'"></textarea>
+        </div>
+        <hr class="modal-divider">
+        <div id="dynamicTemplateFields">
+          <div id="fields_context_handoff" class="dynamic-field-group" style="display: none;">
+            <h3 class="dynamic-title">JSON Field Instructions (Context Handoff)</h3>
+            <div class="form-group"><label for="field_summary">Instructions for `summary`</label><textarea id="field_summary" rows="2" placeholder="e.g., 'Provide a step-by-step chronological history...'"></textarea></div>
+            <div class="form-group"><label for="field_solved_problems">Instructions for `solved_problems`</label><textarea id="field_solved_problems" rows="2" placeholder="e.g., 'List each solved problem, its solution...'"></textarea></div>
+            <div class="form-group"><label for="field_current_problem">Instructions for `current_problem`</label><textarea id="field_current_problem" rows="2" placeholder="e.g., 'Describe the current work status...'"></textarea></div>
+            <div class="form-group"><label for="field_key_insights">Instructions for `key_insights`</label><textarea id="field_key_insights" rows="2" placeholder="e.g., 'List critical technical discoveries...'"></textarea></div>
+          </div>
+          <div id="fields_prompt_handoff" class="dynamic-field-group" style="display: none;">
+            <h3 class="dynamic-title">JSON Field Instructions (Prompt Handoff)</h3>
+            <div class="form-group"><label for="field_task_description">Instructions for `task_description`</label><textarea id="field_task_description" rows="2" placeholder="e.g., 'Instruct the AI to describe the task's main goal...'"></textarea></div>
+            <div class="form-group"><label for="field_implementation_steps">Instructions for `implementation_steps`</label><textarea id="field_implementation_steps" rows="2" placeholder="e.g., 'Instruct the AI to create an atomic, step-by-step plan.'"></textarea></div>
+            <div class="form-group"><label for="field_technologies">Instructions for `technologies`</label><textarea id="field_technologies" rows="2" placeholder="e.g., 'Instruct the AI to list all relevant libraries...'"></textarea></div>
+            <div class="form-group"><label for="field_architecture">Instructions for `architecture`</label><textarea id="field_architecture" rows="2" placeholder="e.g., 'Ask for a description of data flow...'"></textarea></div>
+            <div class="form-group"><label for="field_code_context">Instructions for `code_context`</label><textarea id="field_code_context" rows="2" placeholder="e.g., 'Define how the AI should describe unattached code.'"></textarea></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="deleteTemplateBtn" class="btn btn-danger" style="display: none;">Delete</button>
+          <button type="button" id="cancelTemplateBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Template</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- Symbol Picker Modal                                                      -->
+  <!-- ======================================================================== -->
+  <div id="symbolPickerModal" class="modal" style="display: none;">
+    <div class="modal-content wide">
+      <h2 class="modal-title">
+        <span id="symbolModalFileName">file.ts</span> - Select Symbols
+      </h2>
+
+      <!-- Search Bar -->
+      <div class="form-group">
+        <input
+          type="text"
+          id="symbolSearchInput"
+          class="modal-input"
+          placeholder="🔍 Filter symbols by name..."
+        />
+      </div>
+
+      <!-- Symbol List Container -->
+      <div id="symbolListContainer" style="
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px;
+        background: var(--bg-primary);
+        margin-bottom: 12px;
+      ">
+        <!-- Loading State -->
+        <div id="symbolLoadingState" style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 40px;
+          color: var(--text-muted);
+        ">
+          <div style="text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px; animation: pulse 1.5s ease-in-out infinite;">⏳</div>
+            <div>Loading symbols...</div>
+          </div>
+        </div>
+
+        <!-- Symbol List (populated by JS) -->
+        <div id="symbolList" style="display: none;">
+          <!-- Items will be injected dynamically -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="symbolEmptyState" style="
+          display: none;
+          text-align: center;
+          padding: 40px;
+          color: var(--text-muted);
+        ">
+          <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
+          <div>No symbols found in this file</div>
+          <div style="font-size: 10px; margin-top: 8px; opacity: 0.7;">
+            This file may be empty or contain only comments
+          </div>
+        </div>
+      </div>
+
+      <!-- Selection Info & Bulk Actions -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        margin-bottom: 12px;
+        font-size: 11px;
+        color: var(--text-secondary);
+      ">
+        <span>
+          <span id="symbolSelectedCount" style="font-weight: 600; color: var(--accent-blue);">0</span>
+          symbol(s) selected
+        </span>
+        <div style="display: flex; gap: 8px;">
+          <button id="symbolSelectAllBtn" class="mini-btn">Select All</button>
+          <button id="symbolSelectNoneBtn" class="mini-btn">Clear</button>
+        </div>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="modal-actions">
+        <button type="button" id="cancelSymbolModalBtn" class="btn btn-secondary">
+          Cancel
+        </button>
+        <button type="button" id="addSymbolsToContextBtn" class="btn btn-primary" disabled>
+          Add to Context
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="manageTemplatesModal" class="modal" style="display: none;">
+    <div class="modal-content wide">
+    <h2 class="modal-title">Template Center</h2>
+
+    <div class="template-manager">
+      <div class="tabs">
+        <button class="tab-link active" data-tab="tab-auto_select">Auto Select</button>
+        <button class="tab-link" data-tab="tab-context_handoff">Context Handoff</button>
+        <button class="tab-link" data-tab="tab-prompt_handoff">Prompt Handoff</button>
+      </div>
+
+      <div id="tab-auto_select" class="tab-content active">
+        <!-- Lista dla Auto Select zostanie wstrzyknięta tutaj -->
+      </div>
+      <div id="tab-context_handoff" class="tab-content">
+        <!-- Lista dla Context Handoff zostanie wstrzyknięta tutaj -->
+      </div>
+      <div id="tab-prompt_handoff" class="tab-content">
+        <!-- Lista dla Prompt Handoff zostanie wstrzyknięta tutaj -->
+      </div>
+    </div>
+      <div class="modal-actions">
+          <button type="button" id="closeManageModalBtn" class="btn btn-secondary">Close</button>
+          <button type="button" id="createNewTemplateFromManageBtn" class="btn btn-primary">+ Create New</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- Add Agent Modal (with Presets) -->
+    <div id="addAgentModal" class="modal" style="display: none;">
+    <div class="modal-content wide">
+      <h2 class="modal-title">Dodaj Nowego Agenta</h2>
+      <form id="addAgentForm">
+
+        <!-- Preset Selector Section -->
+        <div class="form-group">
+          <label style="font-weight: 600; margin-bottom: 8px; display: block;">⚡ Szybki Start (Presety)</label>
+
+          <!-- Preset Tabs -->
+          <div class="preset-tabs" style="display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap;">
+            <button type="button" class="preset-tab-btn active" data-category="all" style="flex: 1; min-width: 80px;">
+              Wszystkie
+            </button>
+            <button type="button" class="preset-tab-btn" data-category="favorites" style="flex: 1; min-width: 80px;">
+              ⭐ Ulubione
+            </button>
+            <button type="button" class="preset-tab-btn" data-category="Research" style="flex: 1; min-width: 80px;">
+              📊 Badania
+            </button>
+            <button type="button" class="preset-tab-btn" data-category="Development" style="flex: 1; min-width: 80px;">
+              💻 Dev
+            </button>
+            <button type="button" class="preset-tab-btn" data-category="Specialized" style="flex: 1; min-width: 80px;">
+              🎨 Spec
+            </button>
+            <button type="button" class="preset-tab-btn" data-category="Management" style="flex: 1; min-width: 100px;">
+              🎯 Zarząd
+            </button>
+            <button type="button" class="preset-tab-btn" data-category="custom" style="flex: 1; min-width: 80px;">
+              ⚙️ Custom
+            </button>
+          </div>
+
+          <!-- Preset List (scrollable) -->
+          <div id="presetList" class="preset-list" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 8px;">
+            <!-- Presets will be injected here by JS -->
+            <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+              Ładowanie presetów...
+            </div>
+          </div>
+          <div class="help-text">Wybierz preset lub skonfiguruj ręcznie poniżej</div>
+        </div>
+
+        <hr class="modal-divider" style="margin: 16px 0; border: none; border-top: 1px solid var(--border);">
+
+        <!-- Manual Configuration -->
+        <div class="form-group">
+          <label for="agentNameInput">Nazwa Agenta</label>
+          <input type="text" id="agentNameInput" class="modal-input" placeholder="np. Architekt, Programista, Tester" required>
+          <div class="help-text">Wybierz opisową nazwę dla roli agenta</div>
+        </div>
+
+        <div class="form-group" id="agentTypeFormGroup">
+          <label>Typ Agenta</label>
+          <div class="radio-group" id="agentTypeGroup">
+            <label>
+              <input type="radio" name="agentType" value="Normal" checked>
+              <span>🤖 Agent AI - Paruje się z modelem Claude i wykonuje zadania</span>
+            </label>
+            <label>
+              <input type="radio" name="agentType" value="Report">
+              <span>🗂️ Agregator Raportów - Zbiera i łączy odpowiedzi (NIE jest modelem AI)</span>
+            </label>
+          </div>
+          <div class="help-text">Wybierz typ węzła w workflow</div>
+        </div>
+
+        <div class="form-group">
+          <label for="agentSystemPrompt">Prompt Systemowy (opcjonalny)</label>
+          <textarea id="agentSystemPrompt" class="textarea-input" rows="4" placeholder="Definiuje zachowanie i rolę agenta..."></textarea>
+          <div class="help-text">Zostanie dodany do instrukcji systemowych w oknie agenta</div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="addWrapperCheckbox">
+            Dodaj Wrapper Wyjścia (opcjonalnie)
+          </label>
+        </div>
+        <div class="form-group" id="wrapperInputGroup" style="display: none;">
+          <label for="wrapperTemplateInput">Szablon Wrappera</label>
+          <textarea id="wrapperTemplateInput" class="textarea-input" rows="3" placeholder="Użyj {content} jako placeholder&#10;&#10;Przykład: [SYSTEM]: {content}"></textarea>
+          <div class="help-text">Opakowuje wyjście agenta przed wysłaniem do następnego</div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="cancelAddAgentBtn" class="btn btn-secondary">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Utwórz Agenta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Connect Agents Modal (with Connection Presets) -->
+  <div id="connectAgentsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2 class="modal-title">Połącz Agentów</h2>
+      <form id="connectAgentsForm">
+        <input type="hidden" id="connectFromId">
+        <input type="hidden" id="connectToId">
+        <div class="connection-visual">
+          <div class="connection-node">
+            <div class="node-icon">📤</div>
+            <div class="node-label" id="connectFromLabel">Agent Źródłowy</div>
+          </div>
+          <div class="connection-arrow">→</div>
+          <div class="connection-node">
+            <div class="node-icon">📥</div>
+            <div class="node-label" id="connectToLabel">Agent Docelowy</div>
+          </div>
+        </div>
+
+        <!-- Connection Template Presets -->
+        <div class="form-group">
+          <label style="font-weight: 600; margin-bottom: 8px; display: block;">📋 Szablon Wiadomości</label>
+          <div id="connectionPresetList" class="connection-preset-list" style="display: grid; gap: 8px;">
+            <!-- Connection presets will be injected here -->
+            <div style="text-align: center; color: var(--text-muted); padding: 12px;">
+              Ładowanie szablonów...
+            </div>
+          </div>
+          <div class="help-text">Wybierz szablon lub użyj własnego poniżej</div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="addTemplateCheckbox">
+            Użyj Własnego Szablonu
+          </label>
+        </div>
+        <div class="form-group" id="templateInputGroup" style="display: none;">
+          <label for="messageTemplateInput">Własny Szablon</label>
+          <textarea id="messageTemplateInput" class="textarea-input" rows="4" placeholder="Użyj {content} jako placeholder&#10;&#10;Przykład: Zadanie: {content}"></textarea>
+          <div class="help-text">Transformuje wiadomości między agentami</div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="cancelConnectBtn" class="btn btn-secondary">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Utwórz Połączenie</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Agent Details Modal -->
+  <div id="agentDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2 class="modal-title" id="agentDetailsTitle">Szczegóły Agenta</h2>
+      <div id="agentDetailsContent" class="agent-details-content">
+        <!-- Content will be injected by JS -->
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="closeDetailsBtn" class="btn btn-secondary">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Agent Modal -->
+  <div id="editAgentModal" class="modal" style="display: none;">
+    <div class="modal-content wide">
+      <h2 class="modal-title">✏️ Edytuj Agenta</h2>
+      <form id="editAgentForm">
+        <input type="hidden" id="editAgentId">
+
+        <div class="form-group">
+          <label for="editAgentName">Nazwa Agenta</label>
+          <input type="text" id="editAgentName" class="modal-input" placeholder="np. Architekt, Programista, Tester" required>
+          <div class="help-text">Nazwa agenta w workflow</div>
+        </div>
+
+        <div class="form-group" id="editAgentTypeInfo">
+          <label>Typ Agenta</label>
+          <div id="editAgentTypeDisplay" class="info-box" style="padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px; color: var(--text-secondary);">
+            <!-- Type will be displayed here -->
+          </div>
+          <div class="help-text">Typ agenta nie może być zmieniony po utworzeniu</div>
+        </div>
+
+        <div class="form-group" id="editSystemPromptGroup">
+          <label for="editAgentSystemPrompt">Prompt Systemowy</label>
+          <textarea id="editAgentSystemPrompt" class="textarea-input" rows="6" placeholder="Definiuje zachowanie i rolę agenta..."></textarea>
+          <div class="help-text">Instrukcje systemowe dla agenta AI</div>
+        </div>
+
+        <div class="form-group" id="editWrapperGroup">
+          <label class="checkbox-label">
+            <input type="checkbox" id="editWrapperCheckbox">
+            Używaj Wrappera Wyjścia
+          </label>
+        </div>
+        <div class="form-group" id="editWrapperInputGroup" style="display: none;">
+          <label for="editWrapperTemplateInput">Szablon Wrappera</label>
+          <textarea id="editWrapperTemplateInput" class="textarea-input" rows="3" placeholder="Użyj {content} jako placeholder&#10;&#10;Przykład: [SYSTEM]: {content}"></textarea>
+          <div class="help-text">Opakowuje wyjście agenta przed wysłaniem do następnego. Musi zawierać {content}.</div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelEditAgentBtn" class="btn btn-secondary">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Zapisz Zmiany</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Load Workflow Template Modal -->
+  <div id="loadWorkflowModal" class="modal" style="display: none;">
+    <div class="modal-content wide">
+      <h2 class="modal-title">📦 Załaduj Szablon Workflow</h2>
+      <div class="workflow-template-list" id="workflowTemplateList" style="display: grid; gap: 12px; max-height: 400px; overflow-y: auto; padding: 8px;">
+        <!-- Workflow templates will be injected here -->
+        <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+          Ładowanie szablonów workflow...
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="cancelLoadWorkflowBtn" class="btn btn-secondary">Anuluj</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Drive File Picker Modal -->
+  <div id="googleDrivePickerModal" class="modal" style="display: none;">
+    <div class="modal-content wide">
+      <h2 class="modal-title">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 8px;">
+          <path fill="#4285F4" d="M5.5 0L0 9h3l5.5-9z"/>
+          <path fill="#34A853" d="M10.5 0l-3 5h6l-3-5z"/>
+          <path fill="#FBBC05" d="M5 9L0 14h11l-5.5-5z"/>
+        </svg>
+        Select from Google Drive
+      </h2>
+
+      <div id="googleDriveStatus" class="help-text" style="margin-bottom: 12px; display: none;">
+        <!-- Status messages will appear here -->
+      </div>
+
+      <!-- Search -->
+      <div class="form-group" style="margin-bottom: 12px;">
+        <input type="text" id="driveFileSearch" class="search-input" placeholder="Search files..." style="width: 100%;">
+      </div>
+
+      <!-- File List -->
+      <div class="drive-file-list-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 8px; background: rgba(0,0,0,0.2);">
+        <div id="driveFileList" class="drive-file-list">
+          <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <div class="empty-text">Loading files...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selection Info -->
+      <div class="selection-summary" style="margin-top: 12px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+        <span id="driveSelectedCount">0 files selected</span>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="cancelDrivePickerBtn" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="addDriveFilesBtn" class="btn btn-primary" disabled>Add Selected Files</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Attach Prompt Files Modal -->
+  <div id="attachPromptFilesModal" class="modal" style="display: none;">
+    <div class="modal-content wide">
+      <h2 class="modal-title">📎 Attach Files as Prompts</h2>
+      <div class="help-text" style="margin-bottom: 16px;">
+        Select files to attach as additional prompts for this environment. Supports text files, markdown, JSON, etc.
+      </div>
+
+      <!-- File Source Selection -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Source</label>
+        <div style="display: flex; gap: 8px;">
+          <button id="selectLocalFilesBtn" class="btn btn-secondary" style="flex: 1;">
+            📁 Local Files
+          </button>
+          <button id="selectDriveFilesBtn" class="btn btn-secondary" style="flex: 1;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+              <path d="M5.5 0L0 9h3l5.5-9zm5 0l-3 5h6l-3-5zm-5.5 9L0 14h11l-5.5-5z"/>
+            </svg>
+            Google Drive
+          </button>
+        </div>
+      </div>
+
+      <!-- Selected Files List -->
+      <div class="form-group">
+        <label style="font-weight: 600; margin-bottom: 8px; display: block;">Selected Files</label>
+        <div id="attachedPromptFilesList" class="attached-files-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 8px; background: rgba(0,0,0,0.2); min-height: 100px;">
+          <div class="empty-state">
+            <div class="empty-icon">📎</div>
+            <div class="empty-text">No files attached yet</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="cancelAttachPromptFilesBtn" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="confirmAttachPromptFilesBtn" class="btn btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAG Indexing Configuration Modal -->
+  <div id="ragIndexingModal" class="modal" style="display: none;">
+    <div class="modal-content wide" style="height: 80vh; display: flex; flex-direction: column;">
+      <h2 class="modal-title" style="flex: 0 0 auto; margin-bottom: 10px;">🧠 RAG Knowledge Base</h2>
+      <p class="help-text" style="flex: 0 0 auto; margin-bottom: 12px; text-align: center;">
+        Select projects and files to index for the AI memory.
+      </p>
+
+      <!-- RAG Project Selection (flex: 0 0 auto zapobiega rozciąganiu) -->
+      <div class="project-selection-container" style="flex: 0 0 auto !important; min-height: auto !important; margin-bottom: 8px;">
+        <div class="project-selection-header">
+          <span class="selection-title text-gradient">Scope</span>
+          <button id="ragSelectAllProjectsBtn" class="clear-all-btn">All</button>
+        </div>
+        <div id="ragProjectSelect" class="project-checkboxes"></div>
+      </div>
+
+      <!-- RAG File Tree (height: auto nadpisuje sztywne 400px z CSS) -->
+      <div class="file-tree-container ui-panel neumorphic-inset" style="flex: 1 1 auto !important; height: auto !important; min-height: 0 !important; margin-top: 0;">
+        <div class="file-tree-header">
+          <div class="file-tree-title text-gradient">Index Content</div>
+          <div class="file-count" id="ragSelectionCount">0 files selected</div>
+        </div>
+        <div id="ragFileTree" class="file-tree">
+          <div class="empty-state">
+            <div class="empty-icon">📂</div>
+            <div class="empty-text">Loading projects...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="flex: 0 0 auto; margin-top: 16px;">
+        <button type="button" id="cancelRagIndexingBtn" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="startRagIndexingBtn" class="btn btn-primary">
+          🚀 Start Indexing
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Drive Settings Modal -->
+  <div id="googleSettingsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2 class="modal-title">Google Drive Integration</h2>
+
+      <div style="margin-bottom: 20px;">
+        <div id="googleLoginStatus" style="padding: 12px; border-radius: 6px; margin-bottom: 16px; display: none;">
+          <!-- Status will be injected here -->
+        </div>
+
+        <div id="googleCredentialsForm" style="display: none;">
+          <p style="margin-bottom: 16px; color: var(--text-secondary); font-size: 13px;">
+            To use Google Drive integration, you need to create a Google Cloud project and obtain OAuth credentials.
+            <a href="https://console.cloud.google.com" target="_blank" style="color: var(--accent); text-decoration: underline;">
+              Create credentials here
+            </a>
+          </p>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="googleClientId" style="display: block; margin-bottom: 6px; font-weight: 500;">Client ID</label>
+            <input type="text" id="googleClientId" class="modal-input" placeholder="Your Google OAuth Client ID" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border);">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="googleClientSecret" style="display: block; margin-bottom: 6px; font-weight: 500;">Client Secret</label>
+            <input type="password" id="googleClientSecret" class="modal-input" placeholder="Your Google OAuth Client Secret" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border);">
+          </div>
+
+          <button id="saveGoogleCredsBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 8px;">
+            Save Credentials
+          </button>
+        </div>
+
+        <div id="googleLoginSection" style="display: none;">
+          <p style="margin-bottom: 16px; color: var(--text-secondary); font-size: 13px;">
+            Credentials saved! Click below to authenticate with your Google account.
+          </p>
+          <button id="loginGoogleBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 8px;">
+            Login with Google
+          </button>
+        </div>
+
+        <div id="googleLoggedInSection" style="display: none;">
+          <p style="margin-bottom: 16px; color: var(--success); font-size: 13px;">
+            ✓ Successfully connected to Google Drive
+          </p>
+          <button id="logoutGoogleBtn" class="btn btn-secondary" style="width: 100%;">
+            Logout from Google
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="closeGoogleSettingsBtn" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="blocking-overlay" class="blocking-overlay" style="display: none;">
+    <div class="overlay-content">
+      <img src="../../assets/icons/icon_256.png" alt="Gluon Logo" class="overlay-logo" id="overlay-logo">
+      <h3 id="overlay-title">Connecting...</h3>
+      <p id="overlay-message">Please wait while we connect to the Gluon v2 Desktop application.</p>
+      <a href="https://ai-gluon.com" target="_blank" id="overlay-link" class="overlay-button">Learn More</a>
+    </div>
+  </div>
+
+  <!-- Cytoscape.js for graph visualization (local) -->
+  <script src="../libs/cytoscape.min.js"></script>
+
+  <script type="module" src="utils/prompt-generator.js"></script>
+  <script type="module" src="utils/response-parser.js"></script>
+  <script src="gluon-overlay.js"></script>
+  <script src="../features/workflows/graph-workflow-editor.js"></script>
+  <script type="module" src="../features/workflows/workflow-manager-test.js"></script>
+  <script type="module" src="../features/workflows/workflow-manager.js"></script>
+  <script type="module" src="core.js"></script>
+</body>
+</html>

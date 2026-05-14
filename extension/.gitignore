@@ -1,0 +1,14 @@
+# Test coverage
+coverage/
+*.lcov
+
+# Node modules
+node_modules/
+
+# Test results
+junit.xml
+test-results/
+
+# Logs
+*.log
+npm-debug.log*

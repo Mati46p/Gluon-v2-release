@@ -1,0 +1,593 @@
+/**
+ * Apply System UI Styles
+ *
+ * KROK 37-41: Browser UI Styles
+ */
+
+/* ============================================================================
+   Apply System Layout
+   ============================================================================ */
+
+.apply-system-layout {
+    width: 100%;
+    height: 100%;
+}
+
+.card-header .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* ============================================================================
+   Connection Indicator
+   ============================================================================ */
+
+.connection-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.connection-indicator.connected {
+    background-color: #4caf50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.connection-indicator.disconnected {
+    background-color: #f44336;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+}
+
+/* ============================================================================
+   Changes List
+   ============================================================================ */
+
+.changes-list {
+    padding: 16px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted, #888);
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.empty-state-text {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary, #333);
+}
+
+.empty-state-hint {
+    font-size: 14px;
+    color: var(--text-muted, #888);
+}
+
+/* ============================================================================
+   File Groups
+   ============================================================================ */
+
+.file-group {
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-secondary, #f5f5f5);
+}
+
+.file-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(106, 90, 205, 0.1), rgba(34, 193, 195, 0.1));
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.file-info {
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary, #333);
+    margin-bottom: 4px;
+}
+
+.file-path {
+    font-size: 12px;
+    color: var(--text-muted, #888);
+    font-family: 'Courier New', monospace;
+}
+
+.file-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(106, 90, 205, 0.2);
+    color: var(--text-primary, #333);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ============================================================================
+   Change Items
+   ============================================================================ */
+
+.changes-list-items {
+    padding: 8px;
+}
+
+.change-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    background: var(--bg-primary, #fff);
+    border: 1px solid var(--border-color, #e0e0e0);
+    transition: all 0.2s ease;
+}
+
+.change-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.change-item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.change-status-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.change-description {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-primary, #333);
+    font-family: 'Courier New', monospace;
+}
+
+.change-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    background: rgba(106, 90, 205, 0.1);
+    transform: scale(1.1);
+}
+
+.change-error {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(244, 67, 54, 0.1);
+    border-left: 3px solid #f44336;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #d32f2f;
+}
+
+/* Status-specific styles */
+.change-item.status-pending {
+    border-left: 4px solid #ff9800;
+}
+
+.change-item.status-matching {
+    border-left: 4px solid #2196f3;
+}
+
+.change-item.status-applying {
+    border-left: 4px solid #9c27b0;
+}
+
+.change-item.status-applied {
+    border-left: 4px solid #4caf50;
+    background: rgba(76, 175, 80, 0.05);
+}
+
+.change-item.status-failed {
+    border-left: 4px solid #f44336;
+    background: rgba(244, 67, 54, 0.05);
+}
+
+.change-item.status-skipped {
+    border-left: 4px solid #9e9e9e;
+    opacity: 0.7;
+}
+
+/* ============================================================================
+   Diff Preview Modal
+   ============================================================================ */
+
+.modal-content-wide {
+    width: 90vw;
+    max-width: 1200px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.modal-title-section {
+    flex: 1;
+}
+
+.modal-subtitle {
+    font-size: 13px;
+    color: var(--text-muted, #888);
+    margin: 4px 0;
+    font-family: 'Courier New', monospace;
+}
+
+.btn-icon-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.btn-icon-close:hover {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+}
+
+.modal-body {
+    flex: 1;
+    overflow: hidden;
+    padding: 20px;
+}
+
+.diff-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    height: 100%;
+}
+
+.diff-panel {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-primary, #fff);
+}
+
+.diff-panel-header {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(106, 90, 205, 0.1), rgba(34, 193, 195, 0.1));
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.diff-panel-content {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+}
+
+.code-block {
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre;
+    background: var(--bg-code, #f8f9fa);
+}
+
+.code-line {
+    display: flex;
+    padding: 2px 0;
+}
+
+.line-number {
+    display: inline-block;
+    width: 50px;
+    color: var(--text-muted, #888);
+    text-align: right;
+    padding-right: 16px;
+    user-select: none;
+    border-right: 1px solid var(--border-color, #e0e0e0);
+    margin-right: 16px;
+}
+
+.line-content {
+    flex: 1;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color, #e0e0e0);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ============================================================================
+   Toast Notifications
+   ============================================================================ */
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    background: var(--bg-primary, #fff);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-left: 4px solid #2196f3;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+}
+
+.toast-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-primary, #333);
+}
+
+.toast-close {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    line-height: 1;
+    padding: 0;
+}
+
+.toast-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Toast types */
+.toast-success {
+    border-left-color: #4caf50;
+}
+
+.toast-error {
+    border-left-color: #f44336;
+}
+
+.toast-warning {
+    border-left-color: #ff9800;
+}
+
+.toast-info {
+    border-left-color: #2196f3;
+}
+
+/* ============================================================================
+   Settings Modal (KROK 43)
+   ============================================================================ */
+
+.settings-sections {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.settings-section {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+}
+
+.settings-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-primary, #333);
+}
+
+.setting-item {
+    margin-bottom: 20px;
+}
+
+.setting-item label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text-primary, #333);
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.toggle-label span {
+    flex: 1;
+}
+
+.setting-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: var(--vscode-font-family);
+}
+
+.setting-hint {
+    font-size: 12px;
+    color: var(--text-muted, #888);
+    margin-top: 4px;
+}
+
+.path-list-container {
+    margin-bottom: 12px;
+}
+
+.path-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.path-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: var(--bg-secondary, #f5f5f5);
+    border-radius: 4px;
+}
+
+.path-text {
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    word-break: break-all;
+}
+
+.btn-icon-small {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    line-height: 1;
+    padding: 0;
+}
+
+.btn-icon-small:hover {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+}
+
+.empty-list {
+    font-size: 13px;
+    color: var(--text-muted, #888);
+    font-style: italic;
+    padding: 16px;
+    text-align: center;
+    background: var(--bg-secondary, #f5f5f5);
+    border-radius: 4px;
+}
+
+.form-group-inline {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.form-group-inline input {
+    flex: 1;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .diff-container {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content-wide {
+        width: 95vw;
+    }
+
+    .toast-container {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+
+    .change-actions {
+        flex-direction: column;
+    }
+
+    .settings-sections {
+        max-height: 50vh;
+    }
+
+    .form-group-inline {
+        flex-direction: column;
+    }
+
+    .form-group-inline input {
+        width: 100%;
+    }
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Gluon v2",
+  "version": "0.3.7",
+  "identifier": "com.mati0x.gluon-v2",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Gluon v2",
+        "width": 1200,
+        "height": 860,
+        "visible": false,
+        "label": "main"
+      },
+      {
+        "title": "Command Center - Gluon v3",
+        "width": 1600,
+        "height": 1000,
+        "visible": false,
+        "label": "command_center",
+        "url": "command-center.html",
+        "decorations": true,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "minWidth": 1200,
+        "minHeight": 800
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/icon16.png",
+      "icons/icon32.png",
+      "icons/icon48.png",
+      "icons/icon128.png",
+      "icons/icon.ico"
+    ],
+    "createUpdaterArtifacts": true,
+    "windows": {
+      "wix": {
+        "bannerPath": "wix\\banner.bmp",
+        "dialogImagePath": "wix\\dialog.bmp",
+        "language": "en-US"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://update.ai-gluon.com/update.json"
+      ],
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE5M0Q4ODM5RkNGNDMwNjEKUldSaE1QVDhPWWc5R2RZenZTcUFpajJRRlZ4K2t0eUhkeGNQcmJLYzBJMTRsQStBa3lrSlR6Rk8="
+    }
+  }
+}

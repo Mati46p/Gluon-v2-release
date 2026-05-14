@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gluon Debug Console</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1f6feb, #0969da);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #8b949e;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+
+        .controls {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #30363d;
+        }
+
+        .controls label {
+            margin-right: 15px;
+        }
+
+        select, input, button {
+            background: #0d1117;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        button {
+            cursor: pointer;
+            background: #238636;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2ea043;
+        }
+
+        button.danger {
+            background: #da3633;
+        }
+
+        button.danger:hover {
+            background: #f85149;
+        }
+
+        .log-container {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-left: 3px solid;
+            background: #161b22;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .log-entry.trace { border-color: #6e7681; }
+        .log-entry.debug { border-color: #58a6ff; }
+        .log-entry.info { border-color: #3fb950; }
+        .log-entry.warn { border-color: #d29922; }
+        .log-entry.error { border-color: #f85149; }
+        .log-entry.critical { border-color: #f778ba; }
+
+        .log-timestamp {
+            color: #6e7681;
+            margin-right: 10px;
+        }
+
+        .log-level {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .log-module {
+            color: #8b949e;
+            margin-right: 10px;
+        }
+
+        .log-message {
+            color: #c9d1d9;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6e7681;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: #238636;
+            border-color: #238636;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .snapshot-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .snapshot-card {
+            background: #161b22;
+            padding: 15px;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .snapshot-card:hover {
+            border-color: #58a6ff;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .metric {
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #6e7681;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            color: #58a6ff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐛 Gluon Debug Console</h1>
+        <p>Advanced debugging and diagnostics for Apply System</p>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+            <h3>Log Entries</h3>
+            <div class="value" id="logCount">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Errors (1h)</h3>
+            <div class="value" id="errorCount">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Warnings (1h)</h3>
+            <div class="value" id="warningCount">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>System</h3>
+            <div class="value" id="systemInfo">-</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('logs')">📋 Logs</div>
+        <div class="tab" onclick="switchTab('snapshots')">📸 Snapshots</div>
+        <div class="tab" onclick="switchTab('performance')">⚡ Performance</div>
+        <div class="tab" onclick="switchTab('system')">💻 System</div>
+    </div>
+
+    <div id="logsTab" class="tab-content active">
+        <div class="controls">
+            <label>
+                Level:
+                <select id="logLevel">
+                    <option value="TRACE">Trace</option>
+                    <option value="DEBUG" selected>Debug</option>
+                    <option value="INFO">Info</option>
+                    <option value="WARN">Warn</option>
+                    <option value="ERROR">Error</option>
+                    <option value="CRITICAL">Critical</option>
+                </select>
+            </label>
+            <label>
+                Module:
+                <input type="text" id="logModule" placeholder="Filter by module...">
+            </label>
+            <label>
+                Limit:
+                <input type="number" id="logLimit" value="100" min="10" max="1000" step="10">
+            </label>
+            <button onclick="refreshLogs()">🔄 Refresh</button>
+            <button class="danger" onclick="clearLogs()">🗑️ Clear Logs</button>
+        </div>
+
+        <div class="log-container" id="logContainer">
+            <div class="empty-state">No logs available. Click refresh to load logs.</div>
+        </div>
+    </div>
+
+    <div id="snapshotsTab" class="tab-content">
+        <div class="controls">
+            <button onclick="refreshSnapshots()">🔄 Refresh Snapshots</button>
+            <button class="danger" onclick="cleanupSnapshots()">🗑️ Cleanup Old</button>
+        </div>
+        <div class="snapshot-list" id="snapshotList">
+            <div class="empty-state">No snapshots available.</div>
+        </div>
+    </div>
+
+    <div id="performanceTab" class="tab-content">
+        <div class="performance-metrics" id="performanceMetrics">
+            <div class="empty-state">Performance metrics will appear here.</div>
+        </div>
+    </div>
+
+    <div id="systemTab" class="tab-content">
+        <div class="stat-card" id="systemDetails">
+            <div class="empty-state">Loading system information...</div>
+        </div>
+    </div>
+
+    <script>
+        const { invoke } = window.__TAURI__.core;
+
+        let currentTab = 'logs';
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            if (tabName === 'logs') refreshLogs();
+            if (tabName === 'snapshots') refreshSnapshots();
+            if (tabName === 'performance') refreshPerformance();
+            if (tabName === 'system') refreshSystem();
+        }
+
+        async function refreshStats() {
+            try {
+                const diagnostics = await invoke('get_system_diagnostics');
+                document.getElementById('logCount').textContent = diagnostics.log_buffer_size || 0;
+                document.getElementById('errorCount').textContent = diagnostics.errors_last_hour || 0;
+                document.getElementById('warningCount').textContent = diagnostics.warnings_last_hour || 0;
+                document.getElementById('systemInfo').textContent =
+                    `${diagnostics.system.os} ${diagnostics.system.arch}`;
+            } catch (error) {
+                console.error('Failed to refresh stats:', error);
+            }
+        }
+
+        async function refreshLogs() {
+            const level = document.getElementById('logLevel').value;
+            const module = document.getElementById('logModule').value || null;
+            const limit = parseInt(document.getElementById('logLimit').value);
+
+            try {
+                const logs = await invoke('get_filtered_logs', { level, module, limit });
+                const container = document.getElementById('logContainer');
+
+                if (logs.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No logs match the current filters.</div>';
+                    return;
+                }
+
+                container.innerHTML = logs.map(log => {
+                    const parts = log.match(/\[(.*?)\] \[(.*?)\] \[(.*?)\] (.*)/);
+                    if (!parts) return `<div class="log-entry">${log}</div>`;
+
+                    const [, timestamp, logLevel, moduleName, message] = parts;
+                    return `
+                        <div class="log-entry ${logLevel.toLowerCase()}">
+                            <span class="log-timestamp">${timestamp}</span>
+                            <span class="log-level">${logLevel}</span>
+                            <span class="log-module">[${moduleName}]</span>
+                            <span class="log-message">${message}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                // Auto-scroll to bottom
+                container.scrollTop = container.scrollHeight;
+            } catch (error) {
+                console.error('Failed to refresh logs:', error);
+                document.getElementById('logContainer').innerHTML =
+                    `<div class="empty-state">Error loading logs: ${error}</div>`;
+            }
+        }
+
+        async function clearLogs() {
+            if (!confirm('Are you sure you want to clear all logs?')) return;
+
+            try {
+                await invoke('clear_logs');
+                refreshLogs();
+                refreshStats();
+            } catch (error) {
+                console.error('Failed to clear logs:', error);
+                alert('Failed to clear logs: ' + error);
+            }
+        }
+
+        async function refreshSnapshots() {
+            const container = document.getElementById('snapshotList');
+            container.innerHTML = '<div class="empty-state">Snapshot listing not yet implemented.</div>';
+        }
+
+        async function cleanupSnapshots() {
+            if (!confirm('Remove debug snapshots older than 30 days?')) return;
+
+            try {
+                const removed = await invoke('cleanup_debug_snapshots', { retentionDays: 30 });
+                alert(`Removed ${removed} old snapshot(s)`);
+                refreshSnapshots();
+            } catch (error) {
+                console.error('Failed to cleanup snapshots:', error);
+                alert('Failed to cleanup snapshots: ' + error);
+            }
+        }
+
+        async function refreshPerformance() {
+            const container = document.getElementById('performanceMetrics');
+            container.innerHTML = '<div class="empty-state">Performance tracking coming soon.</div>';
+        }
+
+        async function refreshSystem() {
+            try {
+                const diagnostics = await invoke('get_system_diagnostics');
+                const container = document.getElementById('systemDetails');
+
+                container.innerHTML = `
+                    <h3>System Information</h3>
+                    <p><strong>OS:</strong> ${diagnostics.system.os}</p>
+                    <p><strong>Architecture:</strong> ${diagnostics.system.arch}</p>
+                    <p><strong>CPU Cores:</strong> ${diagnostics.system.cpu_count}</p>
+                    <p><strong>Gluon Version:</strong> ${diagnostics.system.gluon_version}</p>
+                    <br>
+                    <h3>Log Statistics</h3>
+                    <p><strong>Total Entries:</strong> ${diagnostics.total_log_entries}</p>
+                    <p><strong>Errors (1h):</strong> ${diagnostics.errors_last_hour}</p>
+                    <p><strong>Warnings (1h):</strong> ${diagnostics.warnings_last_hour}</p>
+                    <br>
+                    <h3>Logs by Level</h3>
+                    ${Object.entries(diagnostics.by_level || {}).map(([level, count]) =>
+                        `<p><strong>${level}:</strong> ${count}</p>`
+                    ).join('')}
+                `;
+            } catch (error) {
+                console.error('Failed to load system info:', error);
+                document.getElementById('systemDetails').innerHTML =
+                    `<div class="empty-state">Error loading system info: ${error}</div>`;
+            }
+        }
+
+        // Auto-refresh
+        setInterval(refreshStats, 5000);
+        setInterval(() => {
+            if (currentTab === 'logs') refreshLogs();
+        }, 10000);
+
+        // Initial load
+        refreshStats();
+        refreshLogs();
+    </script>
+</body>
+</html>

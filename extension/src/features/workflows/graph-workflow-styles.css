@@ -1,0 +1,182 @@
+/* Graph Workflow Editor Additional Styles */
+
+#workflowGraphView {
+  position: relative;
+  overflow: hidden;
+}
+
+#workflowGraph {
+  background: linear-gradient(90deg, rgba(51, 65, 85, 0.1) 1px, transparent 1px),
+              linear-gradient(rgba(51, 65, 85, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 0;
+}
+
+/* View toggle buttons in workflow controls */
+.workflow-controls .view-toggle-wrapper {
+  display: flex;
+  gap: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 2px;
+  background: var(--bg-primary);
+}
+
+.workflow-controls .toggle-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.workflow-controls .toggle-btn.active {
+  background: var(--accent-blue);
+  color: var(--text-on-accent);
+  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+}
+
+.workflow-controls .toggle-btn:hover:not(.active) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Agent type radio group */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.radio-group label:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-blue);
+}
+
+.radio-group input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.radio-group label:has(input:checked) {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+/* Connection mode styling for graph nodes */
+.cy-node.connection-source {
+  border-color: #8b5cf6 !important;
+  border-width: 4px !important;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+}
+
+/* Visual feedback for shift-click connection mode */
+#workflowGraphView.shift-mode {
+  cursor: crosshair;
+}
+
+#workflowGraphView.shift-mode .cy-node {
+  cursor: pointer;
+}
+
+/* Report Aggregator - special styling to distinguish from AI models */
+.agent-card[data-type="Report"] {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  border: 2px dashed #fbbf24 !important;
+  position: relative;
+}
+
+.agent-card[data-type="Report"]::before {
+  content: '🗂️ AGREGATOR';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fbbf24;
+  color: #0f172a;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.agent-card[data-type="Report"] .agent-name {
+  color: #fbbf24 !important;
+}
+
+/* Tooltip for graph nodes */
+#graphTooltip {
+  position: absolute;
+  background: rgba(15, 23, 42, 0.95);
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+#graphTooltip.show {
+  display: block;
+}
+
+/* Aggregator card specific styles */
+.aggregator-card {
+  border: 2px dashed #fbbf24 !important;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+.aggregator-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 8px;
+  background: rgba(251, 191, 36, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.aggregator-info .info-box {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.aggregator-info .info-box strong {
+  color: #fbbf24;
+  margin-right: 6px;
+}
+
+.aggregator-description {
+  margin: 8px 0;
+  padding: 8px;
+  background: rgba(251, 191, 36, 0.08);
+  border-left: 3px solid #fbbf24;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-style: italic;
+}

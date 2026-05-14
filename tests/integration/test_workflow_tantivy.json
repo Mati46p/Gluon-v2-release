@@ -1,0 +1,70 @@
+{
+  "workflow_name": "Test: Code Search with Tantivy",
+  "description": "Integration test for graph execution with Tantivy BM25 search",
+  "version": "1.0",
+  "graph": {
+    "entry_node": "search_node",
+    "nodes": [
+      {
+        "id": "search_node",
+        "name": "Code Searcher",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Search the codebase for functions related to: {{search_query}}. Use the search_code tool to find relevant code chunks.",
+          "tools": ["search_code"],
+          "max_iterations": 3
+        }
+      },
+      {
+        "id": "analyzer_node",
+        "name": "Code Analyzer",
+        "type": "Agent",
+        "config": {
+          "model": "claude-sonnet-4",
+          "prompt_template": "Analyze the following code search results and provide a summary: {{search_results}}",
+          "max_iterations": 1
+        }
+      },
+      {
+        "id": "end_node",
+        "name": "Complete",
+        "type": "Action",
+        "config": {
+          "action": "log",
+          "message": "Workflow completed successfully"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "search_node",
+        "to": "analyzer_node",
+        "type": "Default"
+      },
+      {
+        "from": "analyzer_node",
+        "to": "end_node",
+        "type": "Default"
+      }
+    ]
+  },
+  "blackboard_init": {
+    "search_query": "authentication function",
+    "search_results": []
+  },
+  "budget": {
+    "limit_cents": 100,
+    "models": {
+      "claude-sonnet-4": 50,
+      "claude-opus-4": 50
+    }
+  },
+  "test_expectations": {
+    "should_complete": true,
+    "max_execution_time_seconds": 60,
+    "expected_blackboard_keys": ["search_query", "search_results", "analysis"],
+    "expected_tool_calls": ["search_code"],
+    "tantivy_queries_expected": true
+  }
+}

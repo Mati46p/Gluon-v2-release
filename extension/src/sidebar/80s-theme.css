@@ -1,0 +1,319 @@
+/* =================================================================== */
+/* == 80s Hologram Theme for Gluon v2 Extension Sidebar (FIXED) == */
+/* =================================================================== */
+
+/* --- Header Logo & Name Override (Corrected Version) --- */
+
+/* Wrapper dla logo */
+body.theme-80s .gluon-logo {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+body.theme-80s .gluon-logo:hover {
+  transform: scale(1.15) rotate(15deg);
+}
+
+/* Tło z poświatą (AURA) - z pliku .PNG */
+body.theme-80s .gluon-logo::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  background-image: url('../../assets/icons/logo_alpha_background.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 0 6px var(--theme-80s-accent)) drop-shadow(0 0 10px var(--theme-80s-accent));
+  opacity: 0.85;
+  z-index: 0;
+}
+
+/* Widoczna ikona na wierzchu - powiększona */
+body.theme-80s .gluon-logo::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  background-color: var(--theme-80s-accent);
+  -webkit-mask-image: url('../../assets/icons/logo_alpha.png');
+  mask-image: url('../../assets/icons/logo_alpha.png');
+  -webkit-mask-size: 26px 26px;
+  mask-size: 26px 26px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  filter: drop-shadow(0 0 2px var(--theme-80s-accent));
+  z-index: 1;
+}
+
+/* Ukrycie domyślnego tekstu */
+body.theme-80s .header-logo-text {
+  display: none;
+}
+
+/* Tekst "Gluon" z maską - przesunięty w lewo */
+body.theme-80s .header-logo-text-masked {
+  display: block;
+  width: 120px;
+  height: 22px;
+  background-color: var(--theme-80s-accent);
+  margin-left: -10px;
+  -webkit-mask-image: url('../../assets/gluon_alpha.png');
+  mask-image: url('../../assets/gluon_alpha.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  filter: drop-shadow(0 0 4px var(--theme-80s-accent));
+}
+
+/* Styl dla numeru wersji */
+body.theme-80s .version-label {
+  text-shadow: 0 0 5px var(--theme-80s-accent);
+}
+
+/* --- Globalne zmienne i style motywu --- */
+body.theme-80s {
+  --bg-primary: var(--theme-80s-bg, #170b01);
+  --bg-secondary: color-mix(in srgb, var(--theme-80s-bg, #170b01) 90%, var(--theme-80s-accent, #ff3300) 5%);
+  --bg-tertiary: color-mix(in srgb, var(--theme-80s-bg, #170b01) 95%, var(--theme-80s-accent, #ff3300) 10%);
+  --bg-hover: color-mix(in srgb, var(--theme-80s-bg, #170b01) 85%, var(--theme-80s-accent, #ff3300) 15%);
+  
+  --accent-blue: var(--theme-80s-accent, #ff3300);
+  --accent-green: color-mix(in srgb, var(--theme-80s-accent, #ff3300) 80%, white 20%);
+  --accent-purple: var(--theme-80s-accent, #ff3300);
+  --accent-gradient: linear-gradient(145deg, var(--accent-blue), var(--accent-green));
+  
+  --text-primary: var(--theme-80s-accent, #ff3300);
+  --text-secondary: color-mix(in srgb, var(--theme-80s-accent, #ff3300) 70%, var(--theme-80s-bg, #170b01) 30%);
+  --text-muted: color-mix(in srgb, var(--theme-80s-accent, #ff3300) 50%, var(--theme-80s-bg, #170b01) 50%);
+  --text-on-accent: var(--theme-80s-bg, #170b01);
+  --text-on-accent-dark: var(--theme-80s-bg, #170b01);
+  
+  --border-color: color-mix(in srgb, var(--theme-80s-accent, #ff3300) 50%, transparent);
+  --border-light: var(--theme-80s-accent, #ff3300);
+  
+  --shadow-dark: transparent;
+  --shadow-light: transparent;
+  --inset-dark: rgba(0, 0, 0, 0.2);
+  --inset-light: color-mix(in srgb, var(--theme-80s-accent, #ff3300) 10%, transparent);
+
+  font-family: 'Courier New', monospace;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  text-shadow: 0 0 2px var(--text-primary);
+}
+
+/* Tło z siatką punktów */
+body.theme-80s::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle, color-mix(in srgb, var(--theme-80s-accent, #ff3300) 8%, transparent) 1px, transparent 1px);
+  background-size: 25px 25px;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+/* --- Hologram & Hover Effects (Corrected Version) --- */
+
+/* Styl bazowy dla elementów nieinteraktywnych */
+body.theme-80s .ui-panel,
+body.theme-80s .header,
+body.theme-80s .search-input,
+body.theme-80s .context-tile {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 3px var(--theme-80s-accent), inset 0 0 3px var(--inset-dark);
+  background-image: repeating-linear-gradient(
+      90deg,
+      rgba(0,0,0,0.1) 0px,
+      rgba(0,0,0,0.1) 2px,
+      transparent 2px,
+      transparent 6px
+    );
+}
+
+/* Styl bazowy dla wszystkich przycisków i kart */
+body.theme-80s .action-button,
+body.theme-80s .project-tab-card,
+body.theme-80s .icon-btn,
+body.theme-80s .select-input {
+  border: 2px solid var(--border-color);
+  color: var(--text-secondary);
+  text-shadow: 0 0 4px var(--text-primary);
+  background: var(--bg-secondary);
+  transition: all 0.2s ease-in-out;
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+}
+
+/* ============================================ */
+/* POPRAWKA: Przycisk Generate - ZMNIEJSZONA INTENSYWNOŚĆ */
+/* ============================================ */
+body.theme-80s .action-button.primary,
+body.theme-80s .project-tab-card.active {
+  border: 2px solid var(--border-color);
+  color: var(--text-secondary);
+  text-shadow: 0 0 4px var(--text-primary);
+  background: var(--bg-secondary);
+  transition: all 0.2s ease-in-out;
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+}
+
+/* 2. Zaznaczone pliki w drzewku ('rozjaśniona' czcionka) */
+body.theme-80s .tree-node.selected {
+  background: transparent !important; /* Usunięcie tła */
+  color: var(--theme-80s-accent) !important; /* 'Rozjaśniona' czcionka */
+  text-shadow: 0 0 8px var(--theme-80s-accent), 0 0 15px var(--theme-80s-accent);
+  border-color: transparent;
+  box-shadow: none;
+  opacity: 1; /* Reset przyciemnienia */
+}
+
+/* Styl "Negatywu" po najechaniu myszą */
+body.theme-80s .action-button:hover:not(:disabled),
+body.theme-80s .project-tab-card:hover,
+body.theme-80s .icon-btn:hover:not(:disabled),
+body.theme-80s .select-input:hover {
+  background-color: transparent;
+  color: var(--theme-80s-accent);
+  text-shadow: 0 0 6px var(--theme-80s-accent);
+  border-color: var(--theme-80s-accent);
+  box-shadow: 0 0 8px var(--theme-80s-accent), 0 0 12px var(--theme-80s-accent);
+}
+
+/* ============================================ */
+/* POPRAWKA: Hover dla Generate - TAK JAK SAVE KEY W DESKTOPIE */
+/* ============================================ */
+body.theme-80s .action-button.primary:hover:not(:disabled) {
+  /* PRZEZROCZYSTE TŁO - jak Save Key */
+  background-color: transparent !important;
+  background-image: none !important;
+  /* CZERWONY TEKST ŚWIECĄCY */
+  color: var(--theme-80s-accent) !important;
+  text-shadow: 0 0 3px var(--theme-80s-accent);
+  /* CZERWONE OBRAMOWANIE pozostaje z bazowej reguły hover */
+  border-color: var(--theme-80s-accent);
+  /* box-shadow pozostaje z bazowej reguły hover */
+}
+
+
+/* --- Pozostałe style --- */
+
+/* Drzewo plików - hover na niezaznaczonym elemencie */
+body.theme-80s .tree-node:not(.selected):hover {
+  background: var(--bg-hover);
+}
+
+/* Connection Indicator Override */
+body.theme-80s .connection-indicator.connected {
+  background: var(--theme-80s-accent);
+  box-shadow: 0 0 5px var(--theme-80s-accent), 0 0 8px var(--theme-80s-accent);
+  animation: none;
+}
+
+body.theme-80s .connection-indicator.disconnected {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+
+/* Project Section Alternating Styles */
+body.theme-80s .project-section {
+  padding: 6px;
+  margin-bottom: 8px;
+  border: none !important;
+}
+
+body.theme-80s .project-section:nth-child(odd) {
+  border-left: 3px solid var(--theme-80s-accent) !important;
+  background: rgba(0,0,0,0.1);
+}
+
+body.theme-80s .project-section:nth-child(even) {
+  border: 1px solid var(--theme-80s-accent) !important;
+  border-radius: 4px;
+  background: transparent;
+}
+
+body.theme-80s .project-section:nth-child(even) .project-header {
+  background: transparent;
+}
+
+/* --- Ikony w drzewie plików w stylu 80s --- */
+body.theme-80s .tree-icon {
+  /* Ukrycie tekstowego emoji */
+  font-size: 0; 
+  
+  /* Użycie koloru akcentu jako tła dla maski */
+  background-color: var(--theme-80s-accent);
+
+  /* Efekt poświaty */
+  filter: drop-shadow(0 0 2px var(--theme-80s-accent));
+  
+  /* Poprawki wizualne */
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  width: 14px; /* Zachowanie oryginalnego rozmiaru */
+  height: 14px;
+}
+
+/* Maska dla ikony PLIKU */
+body.theme-80s .tree-node.file .tree-icon {
+  -webkit-mask-image: url('../../assets/icons/icon-file.svg'); /* Zakładam istnienie takiej ikony */
+  mask-image: url('../../assets/icons/icon-file.svg');
+  -webkit-mask-size: 12px 12px;
+  mask-size: 12px 12px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* Maska dla ikony FOLDERU */
+body.theme-80s .tree-node.directory .tree-icon {
+  -webkit-mask-image: url('../../assets/icons/icon-folder-open.svg'); /* Zakładam istnienie takiej ikony */
+  mask-image: url('../../assets/icons/icon-folder-open.svg');
+  -webkit-mask-size: 14px 14px;
+  mask-size: 14px 14px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+
+/* Po najechaniu, ikona staje się jaśniejsza */
+body.theme-80s .tree-node:hover .tree-icon {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px var(--theme-80s-accent));
+}
+
+/* Ikona dla zaznaczonego pliku - jeszcze mocniejsza poświata */
+body.theme-80s .tree-node.selected .tree-icon {
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--theme-80s-accent));
+  /* Zmiana koloru tła, aby pasowała do podświetlonego tekstu (jeśli jest inny) */
+  background-color: var(--theme-80s-accent);
+}

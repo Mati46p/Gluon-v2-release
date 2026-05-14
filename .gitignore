@@ -1,0 +1,103 @@
+# --- Gluon Project .gitignore ---
+
+# ============================================================================
+# General & OS
+# ============================================================================
+# Pliki generowane przez system operacyjny
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Logi
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Pliki tymczasowe
+*.swp
+*.swo
+
+# ============================================================================
+# Pliki konfiguracyjne środowisk i edytorów
+# ============================================================================
+# IDE (np. JetBrains)
+.idea/
+
+# Visual Studio Code (z wyjątkiem plików, które warto współdzielić)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Zmienne środowiskowe
+.env
+.env.*
+!.env.example
+
+# ============================================================================
+# Zależności Node.js
+# ============================================================================
+# Ignoruj katalogi z modułami we wszystkich podprojektach
+node_modules/
+*/node_modules/
+
+# Pliki blokady wersji - zazwyczaj są dodawane do repozytorium,
+# ale jeśli wolisz je ignorować, odkomentuj poniższą linię.
+# package-lock.json
+# yarn.lock
+
+# ============================================================================
+# Rozszerzenie VS Code (gluon-v2)
+# ============================================================================
+# Skompilowane pliki wyjściowe z esbuild/tsc
+/gluon-v2/dist/
+
+# ============================================================================
+# Aplikacja Desktop (gluon-desktop)
+# ============================================================================
+# Artefakty budowania Rust i Tauri
+/gluon-desktop/src-tauri/target/
+/gluon-desktop/src-tauri/gen/
+
+# Plik Cargo.lock jest zazwyczaj commitowany dla aplikacji binarnych,
+# aby zapewnić powtarzalne buildy. Jeśli chcesz go ignorować, odkomentuj.
+# /gluon-desktop/src-tauri/Cargo.lock
+
+# Skompilowane pliki frontendu i finalne paczki instalacyjne
+/gluon-desktop/dist/
+/gluon-desktop/build/
+*.exe
+*.msi
+*.app
+*.dmg
+*.deb
+
+# Logi budowania
+/gluon-desktop/build_log.txt
+
+# ============================================================================
+# Rozszerzenie przeglądarki (extension)
+# ============================================================================
+# Spakowane pliki rozszerzenia
+*.zip
+*.crx
+*.xpi
+
+# ============================================================================
+# Bazy danych
+# ============================================================================
+# Lokalne pliki bazy danych SQLite używane do testów
+# (Główna baza jest w app_data, ale warto ignorować lokalne kopie)
+*.db
+*.db-journal*
+*.sqlite
+*.sqlite3
+gluon-desktop/src-tauri/models/nomic-embed-text-v1.5.Q8_0.gguf
+gluon-desktop/src-tauri/models/qwen2.5-coder-3b-instruct-q4_k_m.gguf
+gluon-desktop/src-tauri/models/qwen2.5-coder-7b-instruct-q4_k_m.gguf
+/gluon-desktop/src-tauri/models
+/gluon-jetbrains/build
+/gluon-jetbrains/.gradle
